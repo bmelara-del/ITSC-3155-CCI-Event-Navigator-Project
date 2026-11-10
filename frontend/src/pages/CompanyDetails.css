@@ -1,0 +1,258 @@
+.company-details {
+  width: calc(100% - 156px);
+  max-width: 1284px;
+  margin: 0 auto;
+  padding: 77px 0 70px;
+  color: #050505;
+}
+
+.company-details > h1 {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.company-details__industry {
+  margin: 22px 0 0;
+  font-size: 24px;
+  line-height: 1.3;
+}
+
+.company-details__section {
+  width: min(100%, 1231px);
+  margin-top: 36px;
+}
+
+.company-details__section h2 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+.company-details__section > p {
+  margin: 29px 0 0;
+  font-size: 24px;
+  line-height: 1.3;
+}
+
+.company-details__roles {
+  margin-top: 34px;
+}
+
+.company-details__roles > p {
+  margin-top: 14px;
+}
+
+.company-details__skills {
+  margin-top: 36px;
+}
+
+.company-details__skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 65px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.company-details__skill {
+  position: relative;
+  width: 158px;
+  height: 76px;
+  display: grid;
+  flex: 0 0 158px;
+  place-items: center;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.company-details__skill img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 158px;
+  height: 76px;
+}
+
+.company-details__skill span {
+  position: relative;
+}
+
+.company-details__match {
+  position: relative;
+  width: min(100%, 1211px);
+  min-height: 171px;
+  margin-top: 38px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 15px;
+  background: #fff;
+}
+
+.company-details__match-background {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  display: block;
+  width: min(1211px, calc(100% + 2px));
+  height: auto;
+}
+
+.company-details__match-content {
+  position: relative;
+  padding: 19px 28px 11px;
+}
+
+.company-details__match-content h2,
+.company-details__match-content p {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.company-details__match-content p {
+  margin-top: 10px;
+}
+
+.company-details__match-link {
+  min-height: 50px;
+  margin-top: 13px;
+  padding: 0 24px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #046a38;
+  color: #fff;
+  font-size: 20px;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: background-color 160ms ease;
+}
+
+.company-details__match-link:hover {
+  background: #03572e;
+}
+
+.company-details__match-link:focus-visible,
+.company-details__back:focus-visible {
+  outline: 3px solid #9ed1b7;
+  outline-offset: 3px;
+}
+
+.company-details__back {
+  margin-top: 24px;
+  display: inline-flex;
+  color: #046a38;
+  font-size: 16px;
+  text-underline-offset: 3px;
+}
+
+.company-details__not-found {
+  margin: 0;
+}
+
+.company-details__not-found h1 {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 400;
+}
+
+.company-details__not-found p {
+  margin: 12px 0 0;
+  font-size: 18px;
+}
+
+@media (max-width: 960px) {
+  .company-details {
+    width: calc(100% - 64px);
+    padding-top: 50px;
+  }
+
+  .company-details__skill-list {
+    column-gap: 24px;
+  }
+
+  .company-details__match-background {
+    display: none;
+  }
+}
+
+@media (max-width: 680px) {
+  .company-details {
+    width: calc(100% - 36px);
+    padding-top: 42px;
+  }
+
+  .company-details > h1 {
+    font-size: clamp(32px, 8vw, 42px);
+  }
+
+  .company-details__industry {
+    font-size: 19px;
+  }
+
+  .company-details__section {
+    margin-top: 32px;
+  }
+
+  .company-details__section h2 {
+    font-size: 25px;
+  }
+
+  .company-details__section > p {
+    margin-top: 14px;
+    font-size: 18px;
+    line-height: 1.45;
+  }
+
+  .company-details__roles,
+  .company-details__skills {
+    margin-top: 32px;
+  }
+
+  .company-details__roles > p {
+    margin-top: 10px;
+  }
+
+  .company-details__skill-list {
+    gap: 14px;
+    margin-top: 16px;
+  }
+
+  .company-details__skill {
+    font-size: 20px;
+  }
+
+  .company-details__match {
+    min-height: 0;
+    margin-top: 32px;
+  }
+
+  .company-details__match-content {
+    padding: 18px 20px;
+  }
+
+  .company-details__match-content h2,
+  .company-details__match-content p {
+    font-size: 18px;
+  }
+
+  .company-details__match-content p {
+    margin-top: 8px;
+  }
+
+  .company-details__match-link {
+    min-height: 44px;
+    margin-top: 14px;
+    font-size: 17px;
+  }
+
+  .company-details__not-found h1 {
+    font-size: 30px;
+  }
+}

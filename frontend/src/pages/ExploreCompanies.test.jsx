@@ -86,10 +86,16 @@ describe('ExploreCompanies', () => {
     )
 
     expect(screen.getByRole('heading', { name: 'Company A' })).toBeInTheDocument()
-    expect(screen.getByText('Java | SQL | Git')).toBeInTheDocument()
-    expect(
-      screen.getByRole('link', { name: 'Back to Explore Companies' }),
-    ).toHaveAttribute('href', '/companies')
+    expect(screen.getByText(/sample technology employer developing software products/))
+      .toBeInTheDocument()
+    expect(screen.getByText('Software Engineering')).toBeInTheDocument()
+    expect(screen.getByText('Java')).toBeInTheDocument()
+    expect(screen.getByText('SQL')).toBeInTheDocument()
+    expect(screen.getByText('Git')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Check my match' })).toHaveAttribute(
+      'href',
+      '/matching-profile',
+    )
   })
 
   it('reveals the remaining sample companies with the show-more control', async () => {
