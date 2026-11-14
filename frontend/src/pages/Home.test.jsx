@@ -54,10 +54,10 @@ describe('Home opportunity cards', () => {
 
     await user.click(screen.getByRole('link', { name: 'Get Started' }))
 
-    expect(screen.getByRole('heading', { name: 'Student Profile' }))
+    expect(screen.getByRole('heading', { name: 'Create My Profile' }))
       .toBeInTheDocument()
     expect(
-      screen.getByText(/separate from your Matching Profile questionnaire/),
+      screen.getByText(/separate from your matching information/),
     ).toBeInTheDocument()
   })
 })
