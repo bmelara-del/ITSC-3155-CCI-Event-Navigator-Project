@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  INTERNSHIP
+  CO_OP
+  CONTRACT
+}
+
+enum WorkArrangement {
+  ONSITE
+  HYBRID
+  REMOTE
+}
+
+model Company {
+  companyId   String   @id @default(uuid()) @map("company_id") @db.Uuid
+  slug        String   @unique @db.VarChar(120)
+  name        String   @db.VarChar(200)
+  industry    String   @db.VarChar(120)
+  description String?  @db.Text
+  website     String?  @db.VarChar(2048)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  roles Role[]
+
+  @@index([isActive, name])
+  @@map("companies")
+}
+
+model Role {
+  roleId                   String           @id @default(uuid()) @map("role_id") @db.Uuid
+  companyId                String           @map("company_id") @db.Uuid
+  slug                     String           @db.VarChar(120)
+  title                    String           @db.VarChar(200)
+  description              String?          @db.Text
+  location                 String?          @db.VarChar(160)
+  employmentType           EmploymentType?  @map("employment_type")
+  workArrangement          WorkArrangement? @map("work_arrangement")
+  term                     String?          @db.VarChar(80)
+  minimumExperienceLevelId String?          @map("minimum_experience_level_id") @db.Uuid
+  isActive                 Boolean          @default(true) @map("is_active")
+  createdAt                DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  company                Company              @relation(fields: [companyId], references: [companyId], onDelete: Restrict, onUpdate: Cascade)
+  minimumExperienceLevel ExperienceLevel?     @relation("RoleMinimumExperience", fields: [minimumExperienceLevelId], references: [experienceLevelId], onDelete: Restrict, onUpdate: Cascade)
+  skills                 RoleSkill[]
+  coursework             RoleCoursework[]
+  careerInterests        RoleCareerInterest[]
+
+  @@unique([companyId, slug])
+  @@index([isActive, title])
+  @@index([minimumExperienceLevelId])
+  @@map("roles")
+}
+
+model Skill {
+  skillId        String   @id @default(uuid()) @map("skill_id") @db.Uuid
+  name           String   @db.VarChar(120)
+  normalizedName String   @unique @map("normalized_name") @db.VarChar(120)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  roles RoleSkill[]
+
+  @@map("skills")
+}
+
+model RoleSkill {
+  roleId  String @map("role_id") @db.Uuid
+  skillId String @map("skill_id") @db.Uuid
+
+  role  Role  @relation(fields: [roleId], references: [roleId], onDelete: Cascade, onUpdate: Cascade)
+  skill Skill @relation(fields: [skillId], references: [skillId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@id([roleId, skillId])
+  @@index([skillId])
+  @@map("role_skills")
+}
+
+model Coursework {
+  courseworkId   String   @id @default(uuid()) @map("coursework_id") @db.Uuid
+  name           String   @db.VarChar(180)
+  normalizedName String   @unique @map("normalized_name") @db.VarChar(180)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  roles RoleCoursework[]
+
+  @@map("coursework")
+}
+
+model RoleCoursework {
+  roleId       String @map("role_id") @db.Uuid
+  courseworkId String @map("coursework_id") @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [roleId], onDelete: Cascade, onUpdate: Cascade)
+  coursework Coursework @relation(fields: [courseworkId], references: [courseworkId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@id([roleId, courseworkId])
+  @@index([courseworkId])
+  @@map("role_coursework")
+}
+
+model CareerInterest {
+  careerInterestId String   @id @default(uuid()) @map("career_interest_id") @db.Uuid
+  code             String   @unique @db.VarChar(80)
+  label            String   @unique @db.VarChar(120)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  roles RoleCareerInterest[]
+
+  @@map("career_interests")
+}
+
+model RoleCareerInterest {
+  roleId           String @map("role_id") @db.Uuid
+  careerInterestId String @map("career_interest_id") @db.Uuid
+
+  role           Role           @relation(fields: [roleId], references: [roleId], onDelete: Cascade, onUpdate: Cascade)
+  careerInterest CareerInterest @relation(fields: [careerInterestId], references: [careerInterestId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@id([roleId, careerInterestId])
+  @@index([careerInterestId])
+  @@map("role_career_interests")
+}
+
+model ExperienceLevel {
+  experienceLevelId String   @id @default(uuid()) @map("experience_level_id") @db.Uuid
+  code              String   @unique @db.VarChar(80)
+  label             String   @unique @db.VarChar(160)
+  sortOrder         Int      @unique @map("sort_order")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  rolesAtLevel Role[] @relation("RoleMinimumExperience")
+
+  @@map("experience_levels")
+}
