@@ -1,5 +1,5 @@
 .matching-profile {
-  width: calc(100% - 64px);
+  width: min(1350px, calc(100% - 64px));
   max-width: 1350px;
   margin: 0 auto;
   padding: 23px 0 28px;
@@ -30,6 +30,7 @@
 .matching-profile__top-grid,
 .matching-profile__bottom-grid {
   display: grid;
+  width: 100%;
 }
 
 .matching-profile__top-grid {
@@ -127,10 +128,11 @@
 }
 
 .career-options {
-  width: calc(100% - 7px);
+  width: 100%;
   margin-top: 16px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(141px, 1fr);
   gap: 10px 14px;
 }
 
@@ -142,12 +144,16 @@
 }
 
 .career-option__card {
-  position: relative;
   min-height: 141px;
-  padding: 15px 18px 12px;
+  height: 100%;
+  padding: 14px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 15px;
-  display: block;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 26px;
+  grid-template-rows: auto 1fr;
+  align-items: start;
+  column-gap: 8px;
   background: #fff;
   transition: background-color 140ms ease, border-color 140ms ease;
 }
@@ -158,35 +164,45 @@
 }
 
 .career-option__header {
+  min-width: 0;
   min-height: 36px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   color: #111;
   font-size: 16px;
   line-height: 1.25;
 }
 
 .career-option__header img {
+  max-width: 36px;
   flex: 0 0 auto;
 }
 
+.career-option__header span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .career-option__description {
-  max-width: 220px;
-  margin: 2px 17px 0;
+  min-width: 0;
+  grid-column: 1;
+  margin: 2px 0 0 18px;
   display: block;
   color: #111;
   font-size: 15px;
   line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .career-option .matching-profile__indicator {
-  position: absolute;
-  top: 9px;
-  right: 12px;
   width: 26px;
   height: 24px;
   flex-basis: 26px;
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  margin-top: 1px;
 }
 
 .career-option:focus-within .career-option__card,
@@ -241,22 +257,22 @@
 }
 
 .skill-options {
-  margin: 20px 0 0 5px;
+  min-width: 0;
+  margin: 20px 5px 0;
   display: grid;
-  grid-template-columns: repeat(3, 147px);
-  justify-content: start;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 38px 12px;
 }
 
 .skill-option {
   min-width: 0;
   min-height: 43px;
-  padding: 0 8px;
+  padding: 0 7px;
   border: 1px solid #e2e8f0;
   border-radius: 13px;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   background: #fff;
   color: #111;
   font: inherit;
@@ -265,10 +281,16 @@
   cursor: pointer;
 }
 
+.skill-option > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .skill-option .matching-profile__indicator {
-  width: 26px;
+  width: 24px;
   height: 24px;
-  flex-basis: 26px;
+  flex-basis: 24px;
+  flex-shrink: 0;
 }
 
 .skill-option.is-selected {
@@ -318,8 +340,8 @@
   min-width: 0;
   min-height: 24px;
   display: flex;
-  align-items: center;
-  gap: 11px;
+  align-items: flex-start;
+  gap: 10px;
   color: #111;
   font-size: 16px;
   line-height: 1.25;
@@ -327,15 +349,11 @@
 }
 
 .course-option .matching-profile__indicator {
-  position: relative;
-  top: 1px;
   width: 26px;
   height: 24px;
   flex-basis: 26px;
-}
-
-.course-option:nth-child(n + 6) {
-  gap: 23px;
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
 .experience-options {
@@ -349,14 +367,15 @@
 }
 
 .experience-option {
-  position: relative;
   min-width: 0;
   min-height: 65px;
-  padding: 10px 12px 8px 40px;
+  padding: 10px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 15px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
   align-items: center;
+  column-gap: 12px;
   background: #fff;
   cursor: pointer;
 }
@@ -367,12 +386,9 @@
 }
 
 .experience-option > .matching-profile__indicator {
-  position: absolute;
-  left: 19px;
-  top: 17px;
-  width: 26px;
+  width: 24px;
   height: 24px;
-  flex-basis: 26px;
+  flex-basis: 24px;
 }
 
 .experience-option__copy {
@@ -380,10 +396,10 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  transform: translateY(1px);
   color: #111;
   font-size: 16px;
   line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .experience-option__copy span + span {
@@ -462,13 +478,6 @@
   }
 }
 
-@media (max-width: 1319px) {
-  .skill-options {
-    grid-template-columns: repeat(3, minmax(0, 147px));
-    justify-content: space-between;
-  }
-}
-
 @media (max-width: 600px) {
   .matching-profile {
     width: calc(100% - 36px);
@@ -518,23 +527,27 @@
   }
 
   .career-option__card {
-    padding: 35px 9px 10px;
+    padding: 12px 9px 10px;
+    grid-template-columns: minmax(0, 1fr) 24px;
+    column-gap: 5px;
   }
 
   .career-option__header {
     min-height: 0;
-    gap: 7px;
-    font-size: 14px;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 13px;
   }
 
   .career-option__description {
-    margin: 8px 0 0;
+    margin: 5px 0 0;
     font-size: 13px;
   }
 
   .career-option .matching-profile__indicator {
-    top: 7px;
-    right: 7px;
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
   }
 
   .skill-options {
@@ -543,7 +556,7 @@
   }
 
   .skill-option {
-    gap: 8px;
+    gap: 6px;
     font-size: 14px;
   }
 
@@ -555,21 +568,15 @@
     margin-left: 5px;
   }
 
-  .course-option:nth-child(n + 6) {
-    gap: 21px;
-  }
-
   .experience-options {
     margin-right: 0;
     margin-left: 0;
   }
 
   .experience-option {
-    padding-left: 52px;
-  }
-
-  .experience-option > .matching-profile__indicator {
-    left: 14px;
+    grid-template-columns: 24px minmax(0, 1fr);
+    column-gap: 8px;
+    padding: 10px;
   }
 
   .experience-option__copy {
@@ -586,6 +593,12 @@
     min-height: 58px;
     gap: 10px;
     font-size: 18px;
+  }
+}
+
+@media (max-width: 420px) {
+  .career-options {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
