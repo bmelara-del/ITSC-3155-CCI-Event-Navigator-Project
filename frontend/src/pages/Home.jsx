@@ -1,6 +1,7 @@
 import searchIcon from '../assets/figma/search.svg'
 import matchesIcon from '../assets/figma/matches.svg'
 import profileIcon from '../assets/figma/profile.svg'
+import { Link } from 'react-router'
 
 const opportunities = [
   {
@@ -8,6 +9,7 @@ const opportunities = [
     description:
       'Browse employees and learn about their industries, roles, and the skills they look for.',
     action: 'Explore Companies',
+    to: '/companies',
     icon: searchIcon,
     iconAlt: '',
   },
@@ -16,6 +18,7 @@ const opportunities = [
     description:
       'Tell us about your career interests, skills, coursework, and experience to get personalized matches.',
     action: 'Get Matched',
+    to: '/matching-profile',
     icon: matchesIcon,
     iconAlt: '',
   },
@@ -23,12 +26,13 @@ const opportunities = [
     title: 'Create Your Profile',
     description: 'Make a profile with us!',
     action: 'Get Started',
+    to: '/student-profile',
     icon: profileIcon,
     iconAlt: '',
   },
 ]
 
-function OpportunityCard({ title, description, action, icon, iconAlt }) {
+function OpportunityCard({ title, description, action, to, icon, iconAlt }) {
   return (
     <article className="opportunity-card">
       <div className="opportunity-card__icon" aria-hidden="true">
@@ -36,9 +40,9 @@ function OpportunityCard({ title, description, action, icon, iconAlt }) {
       </div>
       <h2>{title}</h2>
       <p>{description}</p>
-      <button className="primary-button" type="button">
+      <Link className="primary-button" to={to}>
         {action}
-      </button>
+      </Link>
     </article>
   )
 }

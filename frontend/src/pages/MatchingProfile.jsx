@@ -372,7 +372,7 @@ function MatchingProfile() {
             aria-labelledby="experience-heading"
           >
             <SectionHeading
-              step="3"
+              step="4"
               title="Experience Level"
               description="What best describes your experience?"
               id="experience-heading"

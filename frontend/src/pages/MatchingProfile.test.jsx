@@ -38,6 +38,11 @@ describe('MatchingProfile', () => {
     expect(
       screen.getByRole('radio', { name: /Beginner \/ No internship/ }),
     ).toBeChecked()
+    expect(
+      [...document.querySelectorAll('.matching-profile__step')].map(
+        (step) => step.textContent,
+      ),
+    ).toEqual(['1', '2', '3', '4'])
   })
 
   it('allows selecting one career interest and experience level', async () => {

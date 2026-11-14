@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import Navbar from './Navbar.jsx'
 
 describe('Navbar', () => {
-  it('renders links for each primary route', () => {
+  it('renders the brand home link and links for each primary route without a Home tab', () => {
     render(
       <MemoryRouter>
         <Navbar />
@@ -15,7 +15,12 @@ describe('Navbar', () => {
     const navigation = screen.getByRole('navigation', { name: 'Main navigation' })
 
     expect(navigation).toHaveAccessibleName('Main navigation')
-    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/')
+    expect(
+      screen.getByRole('link', { name: 'CCI Career Navigator home' }),
+    ).toHaveAttribute('href', '/')
+    expect(
+      within(navigation).queryByRole('link', { name: 'Home' }),
+    ).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Explore Companies' })).toHaveAttribute(
       'href',
       '/companies',
@@ -28,9 +33,13 @@ describe('Navbar', () => {
       'href',
       '/recommendations',
     )
+    expect(screen.getByRole('link', { name: 'My Profile' })).toHaveAttribute(
+      'href',
+      '/student-profile',
+    )
   })
 
-  it('marks the current route and updates it when a link is activated', async () => {
+  it('navigates home when the brand is activated from another route', async () => {
     const user = userEvent.setup()
 
     render(
@@ -48,20 +57,24 @@ describe('Navbar', () => {
       'page',
     )
 
-    await user.click(screen.getByRole('link', { name: 'Home' }))
+    await user.click(
+      screen.getByRole('link', { name: 'CCI Career Navigator home' }),
+    )
 
     expect(screen.getByRole('heading', { name: 'Home page' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute(
+    expect(
+      screen.getByRole('link', { name: 'CCI Career Navigator home' }),
+    ).toHaveAttribute(
       'aria-current',
       'page',
     )
   })
 
   it.each([
-    { path: '/', label: 'Home' },
     { path: '/companies', label: 'Explore Companies' },
     { path: '/matching-profile', label: 'My Matching Profile' },
     { path: '/recommendations', label: 'Recommendations' },
+    { path: '/student-profile', label: 'My Profile' },
   ])('marks $label as current at $path', ({ path, label }) => {
     render(
       <MemoryRouter initialEntries={[path]}>
@@ -80,6 +93,23 @@ describe('Navbar', () => {
     expect(navigation.getByRole('link', { name: label })).toHaveClass('is-active')
   })
 
+  it('marks the brand as the current home link without adding a Home tab', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Navbar />
+      </MemoryRouter>,
+    )
+
+    expect(
+      screen.getByRole('link', { name: 'CCI Career Navigator home' }),
+    ).toHaveAttribute('aria-current', 'page')
+    expect(
+      within(
+        screen.getByRole('navigation', { name: 'Main navigation' }),
+      ).queryByRole('link', { name: 'Home' }),
+    ).not.toBeInTheDocument()
+  })
+
   it('supports keyboard navigation and activation', async () => {
     const user = userEvent.setup()
 
@@ -89,15 +119,13 @@ describe('Navbar', () => {
         <Routes>
           <Route path="/" element={<h1>Home page</h1>} />
           <Route path="/companies" element={<h1>Companies page</h1>} />
+          <Route path="/student-profile" element={<h1>Student Profile</h1>} />
         </Routes>
       </MemoryRouter>,
     )
 
     await user.tab()
     expect(screen.getByRole('link', { name: 'CCI Career Navigator home' })).toHaveFocus()
-
-    await user.tab()
-    expect(screen.getByRole('link', { name: 'Home' })).toHaveFocus()
 
     await user.tab()
     expect(screen.getByRole('link', { name: 'Explore Companies' })).toHaveFocus()
@@ -108,5 +136,28 @@ describe('Navbar', () => {
       'aria-current',
       'page',
     )
+  })
+
+  it('supports keyboard navigation to My Profile', async () => {
+    const user = userEvent.setup()
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<h1>Home page</h1>} />
+          <Route path="/student-profile" element={<h1>Student Profile</h1>} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    await user.tab()
+    await user.tab()
+    await user.tab()
+    await user.tab()
+    await user.tab()
+    expect(screen.getByRole('link', { name: 'My Profile' })).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(screen.getByRole('heading', { name: 'Student Profile' })).toBeInTheDocument()
   })
 })
