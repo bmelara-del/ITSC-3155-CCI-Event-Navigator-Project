@@ -1,12 +1,14 @@
 import { Link, useParams } from 'react-router'
 import matchCallout from '../assets/figma/company-match-callout.svg'
 import skillChip from '../assets/figma/company-skill-chip.svg'
-import { sampleCompanies } from '../data/companies.js'
+import { northwindAnalytics, sampleCompanies } from '../data/companies.js'
 import './CompanyDetails.css'
 
 function CompanyDetails() {
   const { companyId } = useParams()
-  const company = sampleCompanies.find(({ id }) => id === companyId)
+  const company = [northwindAnalytics, ...sampleCompanies].find(
+    ({ id }) => id === companyId,
+  )
 
   if (!company) {
     return (
