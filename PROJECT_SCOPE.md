@@ -1,35 +1,35 @@
-# Project Scope
+# Project Scope — Sprint 2
 
-## Problem
+## Problem and users
 
-CCI students need a way to explore relevant technical employers, understand how their current skills relate to roles, and prepare for employer conversations.
+UNC Charlotte CCI students exploring internships and early-career technical roles need a way to discover relevant employers, relate their skills/coursework to roles, and prepare for recruiter conversations.
 
-## Intended users
+## MVP priorities
 
-UNC Charlotte CCI students exploring internships and early-career technology roles.
+1. **Company profiles:** Browse employers, roles, and associated skills.
+2. **Personalized matching:** Compare career interest, skills, coursework, and experience level against structured role requirements.
+3. **Match explanation and preparation:** Show relevant and missing skills, transparent relevance scores, preparation checklists, and suggested recruiter questions.
 
-## MVP
+## Current implementation vs remaining work
 
-1. **Company profiles:** Browse employer descriptions, roles, and skills.
-2. **Personalized matching:** Compare selected career interest, technical skills, coursework, and experience with structured role requirements.
-3. **Match explanation and preparation:** Show why a role is relevant, matching and missing skills, preparation checklist, and suggested recruiter questions.
+- **Present in frontend:** Homepage, company directory/details, matching questionnaire, recommendation cards with illustrative demo scores, separate student profile saved to browser localStorage, shared navigation.
+- **Sprint 2 work in progress on board:** Backend/database (#10), matching algorithm (#6), recommendations integration (#7), and match details/preparation (#8).
+- **Board statuses needing reconciliation:** Questionnaire (#5) is Sprint 1 In progress and regular student profile (#9) is Todo despite corresponding frontend files being present. Presence does not establish completion.
 
-## Supporting and deferred screens
+## Supporting and deferred scope
 
-The Welcome page supports navigation. A basic personal profile is optional and separate from matching. Career Events is shown in Figma but deferred unless the team revises the MVP.
+The homepage and basic student profile support the user journey; the student profile is separate from the matching questionnaire. Career Events is deferred unless the team explicitly revises the MVP.
 
-## Out of scope initially
+Initially out of scope: live applications, verified real-time job openings, employer integrations, predictions of hiring probability, complex ML, and full account management.
 
-Live job applications, verified real-time openings, employer integrations, hiring probability predictions, complex machine learning, and full account management unless separately approved.
+## MVP completion checklist
 
-## MVP checklist
+- [ ] Company browsing and details are reviewed and accepted.
+- [ ] All four questionnaire inputs are collected and validated.
+- [ ] Reproducible role-level relevance scores replace demo percentages.
+- [ ] Recommendations are ranked using those computed scores.
+- [ ] A selected recommendation opens role-specific explanation and preparation guidance.
+- [ ] Backend/database and frontend are integrated and tested if required by the agreed architecture.
+- [ ] Accessibility, responsive layouts, error handling, and documentation are verified.
 
-- [ ] Browse company cards and detail pages.
-- [ ] Capture all four matching questionnaire inputs.
-- [ ] Calculate reproducible role-level relevance scores.
-- [ ] Rank recommendations and open the selected match detail.
-- [ ] Explain scores using only collected inputs and known role requirements.
-- [ ] Show skill gaps and preparation guidance.
-- [ ] Support primary navigation and reasonable screen sizes.
-
-All example companies, jobs, and scores in the current prototype are illustrative.
+Example company records and current scores are illustrative. See `SPRINT_2.md` for the board snapshot and integration sequence.

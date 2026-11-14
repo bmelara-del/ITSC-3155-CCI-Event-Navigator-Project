@@ -1,54 +1,50 @@
-# Architecture (Proposed)
+# Architecture: Current Implementation and Sprint 2 Target
 
-> This describes planned components, not a deployed system.
+## Implemented frontend
+
+The uploaded project uses React, Vite, React Router, JavaScript, and CSS. `frontend/src/App.jsx` defines `/`, `/companies`, `/companies/:companyId`, `/matching-profile`, `/recommendations`, and `/student-profile`. Shared components include `Navbar.jsx` and `CompanyCard.jsx`.
+
+Company and recommendation records are currently local JavaScript data in `frontend/src/data/`. The matching questionnaire passes `{ careerInterest, skills, coursework, experienceLevel }` to Recommendations through React Router **location state**; this is not a persistent profile or an API request. Recommendations use fixed illustrative percentages, not computed match scores. The separate basic student profile uses browser `localStorage`, not server persistence or authentication.
+
+## Proposed Sprint 2 architecture (not yet verified as implemented)
 
 ```text
-Student browser
-   |
-React + Vite frontend
-   | HTTP/JSON
-Node.js + Express API
-   |                 \
-PostgreSQL          Matching logic
-(companies, roles,   (relevance scores,
- skills, coursework)  explanations)
+Browser: React + Vite
+  | POST matching inputs / GET company information
+  v
+Node.js + Express API (planned)
+  |                      \
+  v                       v
+PostgreSQL (planned)    Matching rules (planned)
+  companies, roles,     relevance scores and
+  skills, coursework    explainable skill gaps
 ```
 
-## Frontend
+Proposed data: companies, roles, role_skills, role_coursework, and any explicitly defined career-interest/experience requirements. Agree on IDs and relationships before implementation.
 
-Pages: Welcome, Explore Companies, Company Details, Matching Questionnaire, Recommendations, Match Details & Prep; optional Basic Student Profile. Reusable elements include navbar, company cards, and match cards.
-
-## Backend and data
-
-Proposed entities: `companies`, `roles`, `role_skills`, and `role_coursework`. Additional role-interest and experience requirements will be defined before implementation.
-
-Proposed endpoints (not implemented):
+### Proposed API contracts (not implemented)
 
 | Method | Route | Purpose |
 | --- | --- | --- |
-| GET | `/api/companies` | List companies |
+| GET | `/api/companies` | Browse companies |
 | GET | `/api/companies/:id` | Company details |
-| POST | `/api/matches` | Score role relevance |
+| POST | `/api/matches` | Calculate ranked role relevance and explanation inputs |
+| GET | `/api/roles/:id` | Optional role detail for match preparation |
 
-Example matching request:
+Example matching input:
 
 ```json
-{
-  "careerInterest": "software-engineering",
-  "skills": ["Java", "SQL", "Git"],
-  "coursework": ["Database Design"],
-  "experienceLevel": "coursework-projects"
-}
+{"careerInterest":"Software Engineering","skills":["Java","SQL","Git"],"coursework":["Database Design"],"experienceLevel":"coursework-projects"}
 ```
 
-## Matching rules
+These are proposals, not promises of the exact eventual backend routes or enum values. The frontend's current field values must be reconciled with the API contract.
 
-Scores represent **relevance**, not likelihood of being hired. Weights, normalization, missing data, and test cases must be agreed upon in a GitHub Issue. Explanations must correspond to actual questionnaire fields and role data. Do not score work style, location, or culture unless those inputs are actually collected.
+## Matching rules and privacy
 
-## Security and privacy
+Scores indicate **relevance, not likelihood of being hired**. Agree on weights, normalization, tie-breaking, missing inputs, and unit tests in issue #6. Each explanation must be traceable to actual inputs and role requirements. Do not score work style, location, or culture without collecting those inputs.
 
-Use environment variables for secrets; never expose database credentials in browser code. Validate inputs, use parameterized queries, and avoid real student data in demos. Do not add persistent personal-data storage before agreeing on its need and privacy requirements.
+Use environment variables for server secrets, input validation, and parameterized database queries. Never expose credentials in frontend code. Decide whether and how to persist personal data before adding server-side storage. Do not use real student records in demonstrations.
 
 ## Open decisions
 
-Matching weights; data source; whether profiles are persisted; API contracts; testing tools; deployment approach.
+Matching weights, seed data and source reliability, API response contracts, persistence/authentication, testing and deployment strategy, and who owns integration between #6/#7/#8/#10.

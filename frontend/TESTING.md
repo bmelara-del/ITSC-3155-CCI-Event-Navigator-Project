@@ -38,3 +38,7 @@ Verified on 2026-11-13.
 | Recommendation details use stable company IDs | Tested navigation to the existing company details page, including the Northwind demo company; invalid IDs retain the existing not-found behavior. | Pass |
 | Desktop and mobile layouts are responsive | Browser-checked the 1440 px two-column card layout and 390 px single-column layout; neither had horizontal overflow. | Pass |
 | Complete frontend checks pass | `npm run test:run` (5 files, 26 tests), `npm run lint`, and `npm run build`. | Pass |
+
+## Documentation review note — 2026-11-13
+
+The earlier dated pass results above are historical records, not a new verification of this uploaded archive. During this documentation review, `npm run test:run` could not execute in the review environment (`vitest: Permission denied`). No current pass/fail claim is made. Team members should run `npm ci`, `npm run test:run`, `npm run lint`, and `npm run build` in their configured environment and record new results.

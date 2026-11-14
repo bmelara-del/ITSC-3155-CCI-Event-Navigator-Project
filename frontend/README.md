@@ -1,16 +1,39 @@
-# React + Vite
+# CCI Career Navigator — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite single-page application for the ITSC 3155 project. This folder is the **frontend only**; the Sprint 2 backend and database are planned, not confirmed implemented in the uploaded source.
 
-Currently, two official plugins are available:
+## Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+From this directory:
 
-## React Compiler
+```bash
+npm ci
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Open the local URL printed by Vite (often `http://localhost:5173`). Use `npm run build` for a production build and `npm run preview` to preview it.
 
-## Expanding the ESLint configuration
+## Checks
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm run test:run
+npm run lint
+npm run build
+```
+
+See [`TESTING.md`](TESTING.md) for historical verification evidence. This documentation update did not obtain a fresh passing test run.
+
+## Routes
+
+| Route | Component | Notes |
+| --- | --- | --- |
+| `/` | `Home.jsx` | Homepage; click navbar brand to return |
+| `/companies` | `ExploreCompanies.jsx` | Local sample companies |
+| `/companies/:companyId` | `CompanyDetails.jsx` | Company detail route |
+| `/matching-profile` | `MatchingProfile.jsx` | Questionnaire |
+| `/recommendations` | `Recommendations.jsx` | Illustrative scores; requires router state |
+| `/student-profile` | `StudentProfile.jsx` | Separate profile in localStorage |
+
+Questionnaire inputs are passed using `navigate('/recommendations', { state: { matchingProfile } })`. They are not saved as a server account; reloading or directly opening the Recommendations route may lose the state and show the questionnaire prompt. The student profile's localStorage is independent.
+
+Sample data is in `src/data/companies.js` and `src/data/recommendations.js`. The current recommendation percentages are demo values, **not** output from a real matching algorithm. See the root `ARCHITECTURE.md` and `SPRINT_2.md` for proposed integration work.

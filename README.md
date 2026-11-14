@@ -2,7 +2,7 @@
 
 **ITSC 3155 – Software Engineering | UNC Charlotte**
 
-**Project Status:** Sprint 1 Development
+**Project Status:** Sprint 2 in progress (board snapshot: November 13, 2026)
 
 ## Project Overview
 
@@ -69,41 +69,35 @@ Backend technologies are planned and may not yet be implemented.
 
 ---
 
-## Project Structure
+## Current frontend implementation
+
+The uploaded repository includes React routes for the home page (`/`), company directory (`/companies`), company details (`/companies/:companyId`), matching questionnaire (`/matching-profile`), recommendations (`/recommendations`), and basic student profile (`/student-profile`). The brand in the shared navbar links to the homepage; the other four pages have navigation links.
+
+- Company directory and detail pages use local sample company data (`frontend/src/data/companies.js`).
+- The matching questionnaire collects career interest, skills, coursework, and experience level, then passes these values to Recommendations using React Router location state.
+- Recommendations display sample company cards and **illustrative, not computed** percentage scores. Opening Recommendations without matching state displays a prompt to complete the questionnaire. Match-details links currently lead to company detail pages, not a completed personalized explanation/preparation workflow.
+- The separate basic student profile supports form entry and local browser storage (`localStorage`). It is not a server-backed account, and it is not automatically the matching profile.
+- The repository includes component/page tests using Vitest and React Testing Library.
+
+## Project structure (key files)
 
 ```text
-ITSC-3155-CCI-Event-Navigator-Project/
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── assets/
-│   │   ├── components/
-│   │   │   └── Navbar.jsx
-│   │   ├── pages/
-│   │   │   ├── Home.jsx
-│   │   │   ├── ExploreCompanies.jsx
-│   │   │   ├── MatchingProfile.jsx
-│   │   │   └── Recommendations.jsx
-│   │   ├── App.jsx
-│   │   ├── App.css
-│   │   ├── index.css
-│   │   └── main.jsx
-│   ├── package.json
-│   └── package-lock.json
-├── docs/
-│   └── testing/
-│       └── shared-navbar.md
-├── .vscode/
-│   └── mcp.json
-├── README.md
-├── CONTRIBUTING.md
-├── PROJECT_SCOPE.md
-└── ARCHITECTURE.md
+frontend/
+  src/
+    App.jsx                  # React Router routes
+    components/              # Navbar, CompanyCard
+    pages/                   # Home, ExploreCompanies, CompanyDetails,
+                             # MatchingProfile, Recommendations, StudentProfile
+    data/                    # Sample companies and recommendations
+    test/                    # Test setup
+  TESTING.md
+  README.md
+README.md
+ARCHITECTURE.md
+PROJECT_SCOPE.md
+CONTRIBUTING.md
+SPRINT_2.md
 ```
-
-This structure represents the intended organization after completing the shared navigation feature. Some files or directories may differ depending on the current implementation.
-
----
 
 ## Installation and Setup
 
@@ -154,46 +148,26 @@ Press `Ctrl + C` in the terminal running Vite.
 
 ---
 
-## Sprint 1 – Shared Navigation Bar
+## Sprint progress
 
-### User Story
+**Sprint 1 completed on the GitHub Projects board:** #1 Project Setup, #2 Shared Navbar, #3 Welcome Page, and #4 Company Profiles. The current source also includes frontend implementations for the matching questionnaire, recommendations, and student profile, but their board statuses differ from their code presence.
 
-As a CCI student, I want a consistent navigation bar so that I can move easily between the application's main pages.
+**Sprint 1 still open on the board:** #5 Matching Questionnaire (in progress) and #9 Regular Student Profile (Todo).
 
-### Feature Description
+**Sprint 2 in progress on the board:** #10 Backend and Database, #8 Match Details and Prep, #6 Matching Algorithm, and #7 Recommendations. No Sprint 2 issues are marked Done in the supplied screenshot.
 
-The Shared Navigation Bar is designed to provide consistent navigation throughout the application.
+See [SPRINT_2.md](SPRINT_2.md) for issue-level priorities, dependencies, integration checkpoints, and acceptance suggestions. The board is a snapshot, not a live sync.
 
-The implementation uses a reusable React component and React Router to navigate between application pages without requiring a full browser reload.
+## Navigation
 
-### Navigation Links
-
-| Navigation Item | Route |
-|---|---|
-| Home | `/` |
+| UI link | Route |
+| --- | --- |
+| CCI Career Navigator brand (home) | `/` |
 | Explore Companies | `/companies` |
 | My Matching Profile | `/matching-profile` |
 | Recommendations | `/recommendations` |
-
-The Matching Profile page passes `{ careerInterest, skills, coursework, experienceLevel }` to Recommendations through React Router location state. Recommendations use frontend-only sample data and clearly labeled illustrative scores; direct visits without profile state prompt students to complete the questionnaire. Recommendation details reuse the existing `/companies/:companyId` route.
-
-### Acceptance Criteria
-
-- [ ] Navbar is implemented as a reusable React component.
-- [ ] Navigation links direct users to the correct pages.
-- [ ] The currently active page is visually identifiable.
-- [ ] Navigation works on desktop and smaller screens.
-- [ ] Navbar styling remains consistent across application pages.
-
-Check these boxes only after the corresponding functionality has been verified.
-
-### Implementation Details
-
-The navbar is implemented in `frontend/src/components/Navbar.jsx` and integrated into the application's shared layout.
-
-React Router handles client-side navigation and identifies the active route. CSS provides the green navigation header, button styling, and responsive behavior based on the Figma prototype.
-
----
+| My Profile | `/student-profile` |
+| Company details (from company cards) | `/companies/:companyId` |
 
 ## Testing
 
@@ -243,24 +217,9 @@ npm run build
 | Responsive layout | Navbar remains usable on desktop and mobile |
 | Shared layout | Navbar appears consistently across pages |
 
-### Test Results
+### Test evidence and limitations
 
-**Automated Tests**
-
-- Tests executed: [Enter actual number]
-- Tests passed: [Enter actual number]
-- Tests failed: [Enter actual number]
-
-**Manual Tests**
-
-- Desktop navigation: [Pass / Fail / Pending]
-- Mobile navigation: [Pass / Fail / Pending]
-- Active-link styling: [Pass / Fail / Pending]
-- Keyboard accessibility: [Pass / Fail / Pending]
-
-Additional testing documentation can be found in `docs/testing/shared-navbar.md`, if created.
-
----
+See [`frontend/TESTING.md`](frontend/TESTING.md) for previously recorded verification and its dates. This documentation update inspected source files but did **not** establish a new passing test run: the local `npm run test:run` attempt failed with `vitest: Permission denied` in the review environment. Run `npm ci`, `npm run test:run`, `npm run lint`, and `npm run build` in your own development environment before reporting current results.
 
 ## Development Workflow
 
@@ -282,9 +241,10 @@ Each development issue includes:
 The team tracks issues through the following statuses:
 
 1. Todo
-2. In Progress
-3. In Review
-4. Done
+2. Sprint 1 In progress
+3. Sprint 1 Done
+4. Sprint 2 in progress
+5. Sprint 2 Done
 
 Issues are assigned to team members and organized by sprint.
 
@@ -328,7 +288,7 @@ Figma MCP is used to provide design context to GitHub Copilot during development
 
 ## AI-Assisted Development Disclosure
 
-GitHub Copilot and the Figma MCP Server were used as development assistance tools during Sprint 1.
+The repository documents GitHub Copilot and Figma MCP as development assistance tools. Team members should confirm any Sprint 2 usage before extending this disclosure.
 
 **GitHub Copilot assisted with:**
 
@@ -353,19 +313,13 @@ This disclosure should be updated to reflect the tools actually used and the cha
 
 ---
 
-## Future Development
+## Next development milestones
 
-Planned features include:
-
-- Company browsing and detailed company profiles
-- Interactive student matching questionnaire
-- Rule-based matching algorithm
-- Personalized company recommendations
-- Match explanations and skill-gap identification
-- Career preparation checklists
-- Backend API and database integration
-
----
+1. Agree on the company/role data contract and database schema (#10).
+2. Implement deterministic, testable matching logic based on the four questionnaire fields (#6).
+3. Replace static illustrative recommendation percentages with actual computed relevance results (#7).
+4. Build role-specific match explanations, skill gaps, and preparation guidance (#8).
+5. Finish verification and board/issue updates for the questionnaire (#5) and student profile (#9).
 
 ## Team
 
@@ -375,10 +329,6 @@ Team member names and responsibilities may be added here.
 
 ---
 
-## Project Status
+## Project status notes
 
-**Current Phase:** Sprint 1
-
-The project is transitioning from Figma prototyping to functional React development. The shared navigation bar is the selected Sprint 1 feature documented in this README.
-
-Further features will be developed and integrated in subsequent sprints.
+Sprint 2 is the current planning focus. Source-code presence does not imply that an issue has been reviewed, merged, tested, or marked complete. Keep GitHub Projects and this README synchronized after team verification.
