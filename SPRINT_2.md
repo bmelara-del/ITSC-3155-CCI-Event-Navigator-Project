@@ -12,14 +12,14 @@
 | #4 | Company Profiles | Sprint 1 Done | Company browsing and detail pages present |
 | #5 | Matching Questionnaire | Sprint 1 In progress | `MatchingProfile.jsx` present; passes location state |
 | #9 | Regular Student Profile | Todo | `StudentProfile.jsx` present; uses browser localStorage |
-| #10 | Backend and Database | Sprint 2 in progress | No backend API/database implementation observed in the uploaded working tree |
+| #10 | Backend and Database | Sprint 2 in progress | Prisma/PostgreSQL schema, client configuration, offline initial migration, and illustrative seed prepared under `backend/`; no database connection, migration application, or API implementation |
 | #8 | Match Details and Prep | Sprint 2 in progress | Existing company details are not yet personalized match explanations |
 | #6 | Matching Algorithm | Sprint 2 in progress | Recommendations still use illustrative static scores |
 | #7 | Recommendations | Sprint 2 in progress | Frontend recommendation page exists; algorithm integration remains |
 
 ## Suggested integration sequence
 
-1. **#10 Data/API contract:** Agree on company IDs, role IDs, skills, coursework, career interests, experience requirements, response/error shapes, and whether matching runs on the server. Define schema/migrations and sample seed data before wiring frontend calls.
+1. **#10 Data/API contract:** The initial catalog schema and illustrative seed are scaffolded under `backend/`. Review the model, approve a PostgreSQL target, then apply the initial migration and validate/sample the data. Agree on API IDs, response/error shapes, and whether matching runs on the server before wiring frontend calls. Role requirements and mappings in the seed are assumptions, not authoritative employer data.
 2. **#6 Matching logic:** Define deterministic relevance formula, normalization, missing-input handling, tie-breaking, and unit tests. Relevance is not hiring probability. Only use questionnaire inputs the app actually collects.
 3. **#7 Recommendations integration:** Connect submitted profile to matching results; show computed scores, loading/error/empty states, and stable role/company detail links. Remove illustrative score labels only once actual scores replace them.
 4. **#8 Match details/preparation:** Display a selected role's score explanation, matching skills, missing skills, suggested recruiter questions, and preparation checklist. Ensure the explanation matches the algorithm output.

@@ -6,23 +6,33 @@ The uploaded project uses React, Vite, React Router, JavaScript, and CSS. `front
 
 Company and recommendation records are currently local JavaScript data in `frontend/src/data/`. The matching questionnaire passes `{ careerInterest, skills, coursework, experienceLevel }` to Recommendations through React Router **location state**; this is not a persistent profile or an API request. Recommendations use fixed illustrative percentages, not computed match scores. The separate basic student profile uses browser `localStorage`, not server persistence or authentication.
 
-## Proposed Sprint 2 architecture (not yet verified as implemented)
+## Sprint 2 backend scaffold
+
+`backend/` now contains a Prisma 7/PostgreSQL schema, generated-client configuration using Prisma's PostgreSQL driver adapter, an offline-generated initial migration, and a development seed script based on the frontend's illustrative company fixtures. The schema covers companies, roles, skills, coursework, career interests, experience levels, and their role associations.
+
+This is a data-model scaffold only. No PostgreSQL database has been connected, no migration has been applied, no backend API exists, and the React frontend continues to use its local fixture data. Matching preferences are not persisted, and there is no student/profile foreign key: the regular Student Profile remains separate from the Matching Profile. Seeded career requirements and role-to-interest/coursework associations are illustrative assumptions, not verified employer data.
 
 ```text
-Browser: React + Vite
-  | POST matching inputs / GET company information
+Browser: React + Vite (existing local fixtures)
+  |  future API integration
   v
-Node.js + Express API (planned)
-  |                      \
-  v                       v
-PostgreSQL (planned)    Matching rules (planned)
-  companies, roles,     relevance scores and
-  skills, coursework    explainable skill gaps
+Node.js API (planned; not implemented)
+  | Prisma 7 + PostgreSQL adapter (scaffolded)
+  v
+PostgreSQL (schema and offline migration prepared; not connected/applied)
+  companies, roles, matching catalogs, role requirements
 ```
 
-Proposed data: companies, roles, role_skills, role_coursework, and any explicitly defined career-interest/experience requirements. Agree on IDs and relationships before implementation.
+### Future API contracts (not implemented)
 
-### Proposed API contracts (not implemented)
+The routes below remain proposals, not implemented services.
+
+```text
+GET /api/companies
+GET /api/companies/:id
+POST /api/matches
+GET /api/roles/:id
+```
 
 | Method | Route | Purpose |
 | --- | --- | --- |
@@ -37,7 +47,7 @@ Example matching input:
 {"careerInterest":"Software Engineering","skills":["Java","SQL","Git"],"coursework":["Database Design"],"experienceLevel":"coursework-projects"}
 ```
 
-These are proposals, not promises of the exact eventual backend routes or enum values. The frontend's current field values must be reconciled with the API contract.
+These routes are not promises of the eventual API contract. The Prisma catalog labels intentionally match the current questionnaire's display values; API serialization and validation still need to be designed.
 
 ## Matching rules and privacy
 
