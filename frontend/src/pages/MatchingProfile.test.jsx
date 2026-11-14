@@ -1,11 +1,26 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import MatchingProfile from './MatchingProfile.jsx'
 
+function renderMatchingProfile() {
+  return render(
+    <MemoryRouter>
+      <MatchingProfile />
+    </MemoryRouter>,
+  )
+}
+
+function SubmittedProfile() {
+  const { state } = useLocation()
+
+  return <output>{JSON.stringify(state?.matchingProfile)}</output>
+}
+
 describe('MatchingProfile', () => {
   it('renders the profile sections with the design defaults', () => {
-    render(<MatchingProfile />)
+    renderMatchingProfile()
 
     expect(
       screen.getByRole('heading', { name: 'Create My Matching Profile' }),
@@ -27,7 +42,7 @@ describe('MatchingProfile', () => {
 
   it('allows selecting one career interest and experience level', async () => {
     const user = userEvent.setup()
-    render(<MatchingProfile />)
+    renderMatchingProfile()
 
     const cybersecurity = screen.getByRole('radio', { name: /Cybersecurity/ })
     await user.click(cybersecurity)
@@ -49,7 +64,7 @@ describe('MatchingProfile', () => {
 
   it('filters skills and expands the additional sample skills', async () => {
     const user = userEvent.setup()
-    render(<MatchingProfile />)
+    renderMatchingProfile()
 
     await user.click(screen.getByRole('button', { name: '+ Show More skills' }))
     expect(screen.getByRole('button', { name: 'TypeScript' })).toBeInTheDocument()
@@ -73,7 +88,7 @@ describe('MatchingProfile', () => {
 
   it('toggles coursework selections', async () => {
     const user = userEvent.setup()
-    render(<MatchingProfile />)
+    renderMatchingProfile()
 
     const programming = screen.getByRole('checkbox', {
       name: 'Introduction to Programming',
@@ -90,7 +105,7 @@ describe('MatchingProfile', () => {
 
   it('supports keyboard focus and activation for skill buttons', async () => {
     const user = userEvent.setup()
-    render(<MatchingProfile />)
+    renderMatchingProfile()
 
     await user.tab()
     expect(
@@ -109,14 +124,38 @@ describe('MatchingProfile', () => {
     expect(java).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('shows a prototype-only confirmation without calculating match scores', async () => {
+  it('navigates with the selected matching profile in route state', async () => {
     const user = userEvent.setup()
-    render(<MatchingProfile />)
+    render(
+      <MemoryRouter initialEntries={['/matching-profile']}>
+        <Routes>
+          <Route path="/matching-profile" element={<MatchingProfile />} />
+          <Route path="/recommendations" element={<SubmittedProfile />} />
+        </Routes>
+      </MemoryRouter>,
+    )
 
+    await user.click(screen.getByRole('radio', { name: /Cybersecurity/ }))
+    await user.click(screen.getByRole('button', { name: 'Java' }))
+    await user.click(
+      screen.getByRole('checkbox', { name: 'Introduction to Programming' }),
+    )
+    await user.click(
+      screen.getByRole('radio', { name: /Previous internship experience/ }),
+    )
     await user.click(screen.getByRole('button', { name: 'Find My Matches' }))
 
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'This prototype does not calculate real match scores.',
-    )
+    expect(screen.getByText(
+      JSON.stringify({
+        careerInterest: 'Cybersecurity',
+        skills: ['Python', 'SQL', 'Git'],
+        coursework: [
+          'Data Structures',
+          'Database Design',
+          'Introduction to Programming',
+        ],
+        experienceLevel: 'Previous internship experience',
+      }),
+    )).toBeInTheDocument()
   })
 })

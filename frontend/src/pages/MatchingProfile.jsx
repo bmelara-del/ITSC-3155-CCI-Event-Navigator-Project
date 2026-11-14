@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router'
 import careerDataIcon from '../assets/figma/career-data.svg'
 import careerLaptopIcon from '../assets/figma/career-laptop.svg'
 import careerSettingsIcon from '../assets/figma/career-settings.svg'
@@ -183,6 +184,7 @@ function ExperienceOption({ level, checked, onChange }) {
 }
 
 function MatchingProfile() {
+  const navigate = useNavigate()
   const [careerInterest, setCareerInterest] = useState('Software Engineering')
   const [selectedSkills, setSelectedSkills] = useState([
     'Java',
@@ -199,7 +201,7 @@ function MatchingProfile() {
   )
   const [skillQuery, setSkillQuery] = useState('')
   const [showAllSkills, setShowAllSkills] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  const [profileError, setProfileError] = useState('')
 
   const visibleSkills = useMemo(() => {
     const normalizedQuery = skillQuery.trim().toLowerCase()
@@ -228,7 +230,22 @@ function MatchingProfile() {
 
   function handleSubmit(event) {
     event.preventDefault()
-    setSubmitted(true)
+
+    if (!careerInterest || !experienceLevel) {
+      setProfileError(
+        'Select a career interest and experience level to continue.',
+      )
+      return
+    }
+
+    const matchingProfile = {
+      careerInterest,
+      skills: [...selectedSkills],
+      coursework: [...selectedCourses],
+      experienceLevel,
+    }
+
+    navigate('/recommendations', { state: { matchingProfile } })
   }
 
   return (
@@ -381,10 +398,9 @@ function MatchingProfile() {
           <span>Find My Matches</span>
           <img src={arrowRightIcon} alt="" />
         </button>
-        {submitted && (
-          <p className="matching-profile__status" role="status">
-            Your sample profile is ready. This prototype does not calculate
-            real match scores.
+        {profileError && (
+          <p className="matching-profile__status" role="alert">
+            {profileError}
           </p>
         )}
       </form>

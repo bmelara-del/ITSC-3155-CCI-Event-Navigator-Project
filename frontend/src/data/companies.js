@@ -1,3 +1,13 @@
+export const northwindAnalytics = {
+  id: 'northwind-analytics',
+  name: 'Northwind Analytics',
+  industry: 'Data & Analytics',
+  description:
+    'A sample data and analytics employer helping organizations turn information into clear decisions. This is placeholder content for the prototype.',
+  roles: ['Data Analyst Intern'],
+  skills: ['SQL', 'Python', 'Data Visualization'],
+}
+
 export const sampleCompanies = [
   {
     id: 'company-a',
