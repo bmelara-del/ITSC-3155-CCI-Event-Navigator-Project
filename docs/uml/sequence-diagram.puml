@@ -1,0 +1,114 @@
+@startuml
+title CCI Career Navigator — Save and Retrieve Matching Profile
+caption Proposed flow only: persistence and API are not implemented
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam sequence {
+  ArrowColor #45645A
+  LifeLineBorderColor #91A99E
+  LifeLineBackgroundColor #F5FAF7
+  ParticipantBorderColor #52796F
+  ParticipantBackgroundColor #DCEFE5
+  ParticipantFontColor #20352D
+  ActorBorderColor #52796F
+  ActorBackgroundColor #F5FAF7
+  GroupBorderColor #98B4A7
+  GroupBackgroundColor #F7FBF8
+  NoteBackgroundColor #FFF8E7
+  NoteBorderColor #D6B86A
+}
+
+actor Student
+participant "MatchingProfile.jsx\nIMPLEMENTED: React form and route-state navigation" as UI
+participant "Express API\nPLANNED" as API
+participant "Matching Profile Service\nPLANNED" as Service
+participant "Prisma ORM\nSCAFFOLDED: client/schema only" as Prisma
+database "PostgreSQL\nPLANNED: not connected" as DB
+
+note over UI,DB
+  This sequence describes the requested future user story, not current behavior.
+  Today the questionnaire builds {careerInterest, skills, coursework,
+  experienceLevel} and navigates to Recommendations using React Router state.
+  There is no Express API, saved-profile Prisma model, profile migration,
+  configured database, or authentication/ownership mechanism.
+end note
+
+Student -> UI: Complete career interest, skills,\ncoursework, and experience level
+Student -> UI: Select "Find My Matches"
+UI -> UI: Validate required selections and build matchingProfile
+UI -> API: POST /api/matching-profiles\n{careerInterest, skills[], coursework[], experienceLevel}
+activate API
+API -> Service: Validate request and questionnaire values
+activate Service
+
+alt Invalid input
+  Service --> API: Validation errors
+  deactivate Service
+  API --> UI: 400 Bad Request\n{errors}
+  deactivate API
+  UI --> Student: Show validation feedback
+else Valid input
+  Service -> Prisma: Create matching profile and related selections
+  activate Prisma
+  note right of Prisma
+    Requires a new, team-approved Prisma model and migration.
+    No such model exists in the approved schema.
+  end note
+  Prisma -> DB: INSERT matching profile and selections
+  activate DB
+  alt Database error
+    DB --> Prisma: Error
+    deactivate DB
+    Prisma --> Service: Persistence error
+    deactivate Prisma
+    Service --> API: Save failed
+    deactivate Service
+    API --> UI: 500 Internal Server Error\n(generic client-safe response)
+    deactivate API
+    UI --> Student: Show save error; retain entered values
+  else Save succeeds
+    DB --> Prisma: Saved record and generated identifier
+    deactivate DB
+    Prisma --> Service: Saved profile
+    deactivate Prisma
+    Service --> API: Persisted profile
+    deactivate Service
+    API --> UI: 201 Created\n{matchingProfile}
+    deactivate API
+    UI --> Student: Display save confirmation
+
+    ... Student returns later ...
+
+    Student -> UI: Open Matching Profile
+    UI -> API: GET /api/matching-profiles/{profileId}
+    activate API
+    API -> Service: Retrieve profile for authorized student
+    activate Service
+    Service -> Prisma: Find profile with selections
+    activate Prisma
+    Prisma -> DB: SELECT profile and related selections
+    activate DB
+    DB --> Prisma: Saved matching profile
+    deactivate DB
+    Prisma --> Service: Profile or not found
+    deactivate Prisma
+    Service --> API: Profile result
+    deactivate Service
+    API --> UI: 200 OK {matchingProfile}\n(or 404 Not Found)
+    deactivate API
+    UI --> Student: Restore saved selections\n(or prompt to create a profile)
+  end
+end
+
+note over Student,DB
+  Review before implementation: decide whether matching answers should persist,
+  define student identity and ownership/authentication, approve the matching-
+  profile schema and migration, and finalize endpoint and error contracts.
+  Do not couple these answers to the separate localStorage Student Profile.
+end note
+
+@enduml
