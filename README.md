@@ -56,16 +56,17 @@ Students will be able to:
 | JavaScript | Application logic |
 | CSS | Styling and responsive layouts |
 | React Router | Client-side navigation |
-| Node.js | Planned backend runtime |
-| Express.js | Planned backend API |
-| PostgreSQL | Planned database |
+| Node.js | Backend tooling runtime (scaffolded) |
+| Prisma 7 | PostgreSQL schema, client, migration, and seed scaffold |
+| PostgreSQL | Planned database; no database connection or migration applied |
+| Express.js | Planned backend API (not implemented) |
 | Git & GitHub | Version control and collaboration |
 | GitHub Projects | Sprint planning and issue tracking |
 | GitHub Copilot | AI-assisted development and testing |
 | Figma | UI/UX prototyping |
 | Figma MCP Server | Providing design information to Copilot |
 
-Backend technologies are planned and may not yet be implemented.
+The backend directory is currently a data-model scaffold only. No API is implemented, the database has not been connected, and the frontend is not integrated with it.
 
 ---
 

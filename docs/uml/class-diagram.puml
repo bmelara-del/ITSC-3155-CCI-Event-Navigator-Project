@@ -1,0 +1,140 @@
+@startuml
+title CCI Career Navigator — Approved Persistence Model
+caption Prisma schema: backend/prisma/schema.prisma
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #45645A
+skinparam ClassBorderColor #52796F
+skinparam ClassBackgroundColor #F5FAF7
+skinparam ClassHeaderBackgroundColor #DCEFE5
+skinparam ClassFontColor #20352D
+skinparam NoteBackgroundColor #FFF8E7
+skinparam NoteBorderColor #D6B86A
+
+hide methods
+
+class Company <<table>> {
+  +companyId: UUID <<PK>>
+  slug: VARCHAR(120) <<UNIQUE>>
+  name: VARCHAR(200)
+  industry: VARCHAR(120)
+  description: TEXT [0..1]
+  website: VARCHAR(2048) [0..1]
+  isActive: BOOLEAN
+  createdAt: TIMESTAMPTZ(6)
+  updatedAt: TIMESTAMPTZ(6)
+}
+
+class Role <<table>> {
+  +roleId: UUID <<PK>>
+  companyId: UUID <<FK>>
+  slug: VARCHAR(120)
+  title: VARCHAR(200)
+  description: TEXT [0..1]
+  location: VARCHAR(160) [0..1]
+  employmentType: EmploymentType [0..1]
+  workArrangement: WorkArrangement [0..1]
+  term: VARCHAR(80) [0..1]
+  minimumExperienceLevelId: UUID [0..1] <<FK>>
+  isActive: BOOLEAN
+  createdAt: TIMESTAMPTZ(6)
+  updatedAt: TIMESTAMPTZ(6)
+  {unique} (companyId, slug)
+}
+
+class Skill <<table>> {
+  +skillId: UUID <<PK>>
+  name: VARCHAR(120)
+  normalizedName: VARCHAR(120) <<UNIQUE>>
+  createdAt: TIMESTAMPTZ(6)
+}
+
+class RoleSkill <<junction table>> {
+  +roleId: UUID <<PK, FK>>
+  +skillId: UUID <<PK, FK>>
+}
+
+class Coursework <<table>> {
+  +courseworkId: UUID <<PK>>
+  name: VARCHAR(180)
+  normalizedName: VARCHAR(180) <<UNIQUE>>
+  createdAt: TIMESTAMPTZ(6)
+}
+
+class RoleCoursework <<junction table>> {
+  +roleId: UUID <<PK, FK>>
+  +courseworkId: UUID <<PK, FK>>
+}
+
+class CareerInterest <<table>> {
+  +careerInterestId: UUID <<PK>>
+  code: VARCHAR(80) <<UNIQUE>>
+  label: VARCHAR(120) <<UNIQUE>>
+  createdAt: TIMESTAMPTZ(6)
+}
+
+class RoleCareerInterest <<junction table>> {
+  +roleId: UUID <<PK, FK>>
+  +careerInterestId: UUID <<PK, FK>>
+}
+
+class ExperienceLevel <<table>> {
+  +experienceLevelId: UUID <<PK>>
+  code: VARCHAR(80) <<UNIQUE>>
+  label: VARCHAR(160) <<UNIQUE>>
+  sortOrder: INTEGER <<UNIQUE>>
+  createdAt: TIMESTAMPTZ(6)
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  INTERNSHIP
+  CO_OP
+  CONTRACT
+}
+
+enum WorkArrangement {
+  ONSITE
+  HYBRID
+  REMOTE
+}
+
+Company "1" -- "0..*" Role : employs
+ExperienceLevel "0..1" <-- "0..*" Role : minimum experience
+
+Role "1" -- "0..*" RoleSkill
+Skill "1" -- "0..*" RoleSkill
+Role "1" -- "0..*" RoleCoursework
+Coursework "1" -- "0..*" RoleCoursework
+Role "1" -- "0..*" RoleCareerInterest
+CareerInterest "1" -- "0..*" RoleCareerInterest
+
+Role ..> EmploymentType
+Role ..> WorkArrangement
+
+note right of Role
+  Unique constraint: (companyId, slug)
+  Company deletion is restricted while roles exist.
+  Role-owned junction rows cascade on role deletion;
+  shared catalog values are restricted from deletion.
+end note
+
+note bottom of CareerInterest
+  Matching Profile input is currently transient React Router state.
+  Student and MatchingProfile are intentionally not classes/tables here:
+  the approved Prisma schema has no student identity or saved matching
+  profile, and the regular Student Profile remains separate.
+end note
+
+note bottom of ExperienceLevel
+  A role has zero or one minimum experience level.
+  Each level can be referenced by zero or many roles.
+end note
+
+@enduml
