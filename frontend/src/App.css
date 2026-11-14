@@ -20,6 +20,14 @@
   line-height: 1.4;
   text-decoration: none;
   white-space: nowrap;
+  cursor: pointer;
+  transition: color 160ms ease, text-decoration-color 160ms ease;
+}
+
+.brand:hover {
+  color: #dcefe4;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .site-nav {

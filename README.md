@@ -175,7 +175,7 @@ The implementation uses a reusable React component and React Router to navigate 
 | My Matching Profile | `/matching-profile` |
 | Recommendations | `/recommendations` |
 
-Pages that have not yet been fully implemented may display temporary placeholder content.
+The Matching Profile page passes `{ careerInterest, skills, coursework, experienceLevel }` to Recommendations through React Router location state. Recommendations use frontend-only sample data and clearly labeled illustrative scores; direct visits without profile state prompt students to complete the questionnaire. Recommendation details reuse the existing `/companies/:companyId` route.
 
 ### Acceptance Criteria
 

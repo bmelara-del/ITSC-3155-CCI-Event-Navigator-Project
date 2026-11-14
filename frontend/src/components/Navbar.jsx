@@ -1,16 +1,23 @@
 import { NavLink } from 'react-router'
 
 const navigationLinks = [
-  { label: 'Home', to: '/' },
   { label: 'Explore Companies', to: '/companies' },
   { label: 'My Matching Profile', to: '/matching-profile' },
   { label: 'Recommendations', to: '/recommendations' },
+  { label: 'My Profile', to: '/student-profile' },
 ]
 
 function Navbar() {
   return (
     <header className="site-header">
-      <NavLink className="brand" to="/" end aria-label="CCI Career Navigator home">
+      <NavLink
+        className={({ isActive }) =>
+          isActive ? 'brand is-active' : 'brand'
+        }
+        to="/"
+        end
+        aria-label="CCI Career Navigator home"
+      >
         CCI Career Navigator
       </NavLink>
       <nav className="site-nav" aria-label="Main navigation">
