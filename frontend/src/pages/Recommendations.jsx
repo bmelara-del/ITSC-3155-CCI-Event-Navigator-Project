@@ -20,8 +20,9 @@ function isMatchingProfile(value) {
   )
 }
 
-function RecommendationCard({ recommendation }) {
-  const { id, name, industry, roles, skills, matchPercent } = recommendation
+function RecommendationCard({ recommendation, matchingProfile }) {
+  const { id, name, industry, roles, skills } = recommendation
+  const companySlug = recommendation.slug || id || recommendation.companyId
 
   return (
     <article
@@ -32,11 +33,8 @@ function RecommendationCard({ recommendation }) {
           <h2>{name}</h2>
           <p>{industry}</p>
         </div>
-        <span
-          className="recommendation-card__score"
-          aria-label={`Illustrative demo score: ${matchPercent}%`}
-        >
-          {matchPercent}% demo score
+        <span className="recommendation-card__score" aria-label="Match score unavailable">
+          Score unavailable
         </span>
       </header>
       <p className="recommendation-card__detail">Roles: {roles.join(', ')}</p>
@@ -45,7 +43,8 @@ function RecommendationCard({ recommendation }) {
       </p>
       <Link
         className="recommendation-card__action"
-        to={`/companies/${id}`}
+        to={`/recommendations/${encodeURIComponent(companySlug)}/details`}
+        state={{ recommendation, matchingProfile }}
         aria-label={`View Match Details for ${name}`}
       >
         View Match Details
@@ -105,7 +104,7 @@ function Recommendations() {
           {matchingProfile.coursework.length === 1 ? '' : 's'} |{' '}
           {matchingProfile.experienceLevel}.{' '}
           <span className="recommendations-page__demo-note">
-            Demo scores are illustrative and are not calculated.
+            Match scores and explanations are not available yet.
           </span>
         </p>
       </header>
@@ -118,6 +117,7 @@ function Recommendations() {
           <RecommendationCard
             key={recommendation.id}
             recommendation={recommendation}
+            matchingProfile={matchingProfile}
           />
         ))}
       </section>

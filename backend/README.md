@@ -1,6 +1,6 @@
 # Backend API and data scaffold
 
-This directory contains a basic Express API server and a Prisma 7 PostgreSQL data layer. The React frontend is not yet connected to the API.
+This directory contains a basic Express API server and a Prisma 7 PostgreSQL data layer. The Match Details frontend route can look up companies by their API slug when opened directly or refreshed.
 
 ## Local setup
 
