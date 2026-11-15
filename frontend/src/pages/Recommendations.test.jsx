@@ -1,8 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
-import { afterEach, vi } from 'vitest'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import MatchDetails from './MatchDetails.jsx'
 import MatchingProfile from './MatchingProfile.jsx'
 import Recommendations from './Recommendations.jsx'
@@ -17,7 +16,18 @@ const matchingProfile = {
   skills: ['Java', 'SQL', 'Git'],
   coursework: ['Data Structures', 'Database Design'],
   experienceLevel: 'Beginner / No internship',
+  updatedAt: '2026-11-14T21:00:00.000Z',
 }
+
+beforeEach(() => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ ...matchingProfile, profileId: 'profile-1' }),
+    })),
+  )
+})
 
 function stubRecommendationApi() {
   const companies = sampleRecommendations.map((recommendation, index) => ({
@@ -45,6 +55,13 @@ function stubRecommendationApi() {
   vi.stubGlobal(
     'fetch',
     vi.fn((url) => {
+      if (url.endsWith('/matching-profile')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ ...matchingProfile, profileId: 'profile-1' }),
+        })
+      }
+
       if (url.endsWith('/companies')) {
         return Promise.resolve({
           ok: true,
@@ -70,11 +87,9 @@ function stubRecommendationApi() {
   )
 }
 
-function renderRecommendations(state = { matchingProfile }) {
+function renderRecommendations() {
   return render(
-    <MemoryRouter
-      initialEntries={[{ pathname: '/recommendations', state }]}
-    >
+    <MemoryRouter initialEntries={['/recommendations']}>
       <Routes>
         <Route path="/recommendations" element={<Recommendations />} />
         <Route
@@ -88,11 +103,11 @@ function renderRecommendations(state = { matchingProfile }) {
 }
 
 describe('Recommendations', () => {
-  it('renders the Figma sample recommendations and submitted profile summary', () => {
+  it('renders sample recommendations from the saved profile after a direct load', async () => {
     renderRecommendations()
 
     expect(
-      screen.getByRole('heading', { name: 'Recommended Companies' }),
+      await screen.findByRole('heading', { name: 'Recommended Companies' }),
     ).toBeInTheDocument()
     expect(screen.getByText(/Your profile:/)).toHaveTextContent(
       'Software Engineering | Java, SQL, Git | 2 courses | Beginner / No internship',
@@ -116,12 +131,16 @@ describe('Recommendations', () => {
       .toHaveLength(6)
   })
 
-  it('asks students without a submitted profile to complete the questionnaire', async () => {
+  it('asks students without a saved profile to complete the questionnaire', async () => {
     const user = userEvent.setup()
-    renderRecommendations(null)
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false, status: 404 })),
+    )
+    renderRecommendations()
 
     expect(
-      screen.getByRole('heading', {
+      await screen.findByRole('heading', {
         name: 'Complete your Matching Profile first',
       }),
     ).toBeInTheDocument()
@@ -136,6 +155,7 @@ describe('Recommendations', () => {
   it('reveals the remaining demo recommendations', async () => {
     const user = userEvent.setup()
     renderRecommendations()
+    await screen.findByRole('heading', { name: 'Recommended Companies' })
 
     const recommendations = within(
       screen.getByRole('region', { name: 'Sample company recommendations' }),
@@ -172,6 +192,7 @@ describe('Recommendations', () => {
     stubRecommendationApi()
     renderRecommendations()
 
+    await screen.findByRole('heading', { name: 'Recommended Companies' })
     const detailsLink = screen.getByRole('link', {
       name: `View Match Details for ${name}`,
     })
@@ -187,8 +208,26 @@ describe('Recommendations', () => {
       .toBeInTheDocument()
   })
 
-  it('renders recommendations after navigating from the questionnaire with selected values', async () => {
+  it('uses the saved questionnaire responses after completing the questionnaire', async () => {
     const user = userEvent.setup()
+    let savedProfile = null
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url, options = {}) => {
+        if (options.method === 'PUT') {
+          savedProfile = {
+            ...JSON.parse(options.body),
+            profileId: 'profile-1',
+            updatedAt: '2026-11-14T21:00:00.000Z',
+          }
+          return { ok: true, json: async () => savedProfile }
+        }
+
+        return savedProfile
+          ? { ok: true, json: async () => savedProfile }
+          : { ok: false, status: 404 }
+      }),
+    )
 
     render(
       <MemoryRouter initialEntries={['/matching-profile']}>
@@ -199,6 +238,7 @@ describe('Recommendations', () => {
       </MemoryRouter>,
     )
 
+    await screen.findByRole('heading', { name: 'Create My Matching Profile' })
     await user.click(screen.getByRole('radio', { name: /Data Science/ }))
     await user.click(
       screen.getByRole('checkbox', { name: 'Computer Networks' }),
@@ -206,13 +246,37 @@ describe('Recommendations', () => {
     await user.click(
       screen.getByRole('radio', { name: /Some project or work experience/ }),
     )
-    await user.click(screen.getByRole('button', { name: 'Find My Matches' }))
+    await user.click(screen.getByRole('button', { name: 'Save My Profile' }))
 
     expect(
-      screen.getByRole('heading', { name: 'Recommended Companies' }),
+      await screen.findByRole('heading', { name: 'My Saved Matching Profile' }),
+    ).toBeInTheDocument()
+    await user.click(screen.getByRole('link', { name: 'View Recommendations' }))
+    expect(
+      await screen.findByRole('heading', { name: 'Recommended Companies' }),
     ).toBeInTheDocument()
     expect(screen.getByText(/Your profile:/)).toHaveTextContent(
       'Data Science | Java, Python, SQL, Git | 3 courses | Some project or work experience',
     )
+  })
+
+  it('shows an API error with retry instead of treating it as no profile', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false, status: 503 })),
+    )
+    renderRecommendations()
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Your matching profile could not be checked',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', {
+        name: 'Complete your Matching Profile first',
+      }),
+    ).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
   })
 })

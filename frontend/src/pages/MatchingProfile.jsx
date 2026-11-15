@@ -1,5 +1,9 @@
-import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useEffect, useMemo, useState } from 'react'
+import SavedMatchingProfile from './SavedMatchingProfile.jsx'
+import {
+  fetchMatchingProfile,
+  saveMatchingProfile,
+} from '../api/matchingProfiles.js'
 import careerDataIcon from '../assets/figma/career-data.svg'
 import careerLaptopIcon from '../assets/figma/career-laptop.svg'
 import careerSettingsIcon from '../assets/figma/career-settings.svg'
@@ -183,34 +187,43 @@ function ExperienceOption({ level, checked, onChange }) {
   )
 }
 
-function MatchingProfile() {
-  const navigate = useNavigate()
-  const [careerInterest, setCareerInterest] = useState('Software Engineering')
+function MatchingProfileQuestionnaire({ profile, onCancel, onSaved }) {
+  const [careerInterest, setCareerInterest] = useState(
+    profile?.careerInterest ?? 'Software Engineering',
+  )
   const [selectedSkills, setSelectedSkills] = useState([
-    'Java',
-    'Python',
-    'SQL',
-    'Git',
+    ...(profile?.skills ?? ['Java', 'Python', 'SQL', 'Git']),
   ])
   const [selectedCourses, setSelectedCourses] = useState([
-    'Data Structures',
-    'Database Design',
+    ...(profile?.coursework ?? ['Data Structures', 'Database Design']),
   ])
   const [experienceLevel, setExperienceLevel] = useState(
-    'Beginner / No internship',
+    profile?.experienceLevel ?? 'Beginner / No internship',
   )
   const [skillQuery, setSkillQuery] = useState('')
   const [showAllSkills, setShowAllSkills] = useState(false)
   const [profileError, setProfileError] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const availableSkills = useMemo(
+    () => [...new Set([...allSkills, ...(profile?.skills ?? [])])],
+    [profile],
+  )
+  const availableCoursework = useMemo(
+    () => [...new Set([...coursework, ...(profile?.coursework ?? [])])],
+    [profile],
+  )
 
   const visibleSkills = useMemo(() => {
     const normalizedQuery = skillQuery.trim().toLowerCase()
-    const skills = normalizedQuery || showAllSkills ? allSkills : initialSkills
+    const skills =
+      normalizedQuery || showAllSkills
+        ? availableSkills
+        : [...new Set([...initialSkills, ...(profile?.skills ?? [])])]
 
     return skills.filter((skill) =>
       skill.toLowerCase().includes(normalizedQuery),
     )
-  }, [showAllSkills, skillQuery])
+  }, [availableSkills, profile, showAllSkills, skillQuery])
 
   function toggleSkill(skill) {
     setSelectedSkills((currentSkills) =>
@@ -228,7 +241,7 @@ function MatchingProfile() {
     )
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
 
     if (!careerInterest || !experienceLevel) {
@@ -245,13 +258,26 @@ function MatchingProfile() {
       experienceLevel,
     }
 
-    navigate('/recommendations', { state: { matchingProfile } })
+    setIsSaving(true)
+    setProfileError('')
+
+    try {
+      onSaved(await saveMatchingProfile(matchingProfile))
+    } catch (error) {
+      setProfileError(
+        error instanceof Error
+          ? error.message
+          : 'Your matching profile could not be saved.',
+      )
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
     <main className="matching-profile">
       <header className="matching-profile__intro">
-        <h1>Create My Matching Profile</h1>
+        <h1>{profile ? 'Edit My Matching Profile' : 'Create My Matching Profile'}</h1>
         <p>
           Tell us about your background and interest so we can recommend
           companies that align with your goals
@@ -356,7 +382,7 @@ function MatchingProfile() {
               role="group"
               aria-label="Relevant coursework"
             >
-              {coursework.map((course) => (
+              {availableCoursework.map((course) => (
                 <CourseworkOption
                   key={course}
                   course={course}
@@ -394,10 +420,26 @@ function MatchingProfile() {
           </section>
         </div>
 
-        <button className="matching-profile__submit" type="submit">
-          <span>Find My Matches</span>
-          <img src={arrowRightIcon} alt="" />
-        </button>
+        <div className="matching-profile__actions">
+          {onCancel && (
+            <button
+              className="matching-profile__cancel"
+              type="button"
+              onClick={onCancel}
+              disabled={isSaving}
+            >
+              Cancel
+            </button>
+          )}
+          <button
+            className="matching-profile__submit"
+            type="submit"
+            disabled={isSaving}
+          >
+            <span>{isSaving ? 'Saving Profile...' : 'Save My Profile'}</span>
+            <img src={arrowRightIcon} alt="" />
+          </button>
+        </div>
         {profileError && (
           <p className="matching-profile__status" role="alert">
             {profileError}
@@ -405,6 +447,96 @@ function MatchingProfile() {
         )}
       </form>
     </main>
+  )
+}
+
+function MatchingProfile() {
+  const [loadState, setLoadState] = useState({
+    status: 'loading',
+    profile: null,
+    error: '',
+  })
+  const [retryCount, setRetryCount] = useState(0)
+  const [isEditing, setIsEditing] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
+
+  useEffect(() => {
+    let active = true
+
+    fetchMatchingProfile()
+      .then((profile) => {
+        if (active) {
+          setLoadState({ status: 'loaded', profile, error: '' })
+        }
+      })
+      .catch((error) => {
+        if (active) {
+          setLoadState({
+            status: 'error',
+            profile: null,
+            error:
+              error instanceof Error
+                ? error.message
+                : 'Your matching profile could not be loaded.',
+          })
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [retryCount])
+
+  if (loadState.status === 'loading') {
+    return (
+      <main className="matching-profile__load-state" role="status">
+        <h1>Loading your matching profile</h1>
+        <p>Checking for a saved questionnaire before continuing.</p>
+      </main>
+    )
+  }
+
+  if (loadState.status === 'error') {
+    return (
+      <main className="matching-profile__load-state" role="alert">
+        <h1>Your matching profile could not be loaded</h1>
+        <p>{loadState.error}</p>
+        <button
+          type="button"
+          onClick={() => {
+            setLoadState({ status: 'loading', profile: null, error: '' })
+            setRetryCount((count) => count + 1)
+          }}
+        >
+          Try again
+        </button>
+      </main>
+    )
+  }
+
+  if (loadState.profile && !isEditing) {
+    return (
+      <SavedMatchingProfile
+        profile={loadState.profile}
+        successMessage={successMessage}
+        onEdit={() => {
+          setSuccessMessage('')
+          setIsEditing(true)
+        }}
+      />
+    )
+  }
+
+  return (
+    <MatchingProfileQuestionnaire
+      profile={loadState.profile}
+      onCancel={loadState.profile ? () => setIsEditing(false) : undefined}
+      onSaved={(profile) => {
+        setLoadState({ status: 'loaded', profile, error: '' })
+        setIsEditing(false)
+        setSuccessMessage('Your matching profile was saved successfully.')
+      }}
+    />
   )
 }
 

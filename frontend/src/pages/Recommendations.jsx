@@ -1,24 +1,10 @@
-import { useState } from 'react'
-import { Link, useLocation } from 'react-router'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router'
 import { sampleRecommendations } from '../data/recommendations.js'
+import { fetchMatchingProfile } from '../api/matchingProfiles.js'
 import './Recommendations.css'
 
 const INITIAL_RECOMMENDATION_COUNT = 6
-
-function isMatchingProfile(value) {
-  return (
-    value !== null &&
-    typeof value === 'object' &&
-    typeof value.careerInterest === 'string' &&
-    value.careerInterest.length > 0 &&
-    Array.isArray(value.skills) &&
-    value.skills.every((skill) => typeof skill === 'string') &&
-    Array.isArray(value.coursework) &&
-    value.coursework.every((course) => typeof course === 'string') &&
-    typeof value.experienceLevel === 'string' &&
-    value.experienceLevel.length > 0
-  )
-}
 
 function RecommendationCard({ recommendation, matchingProfile }) {
   const { id, name, industry, roles, skills } = recommendation
@@ -54,11 +40,76 @@ function RecommendationCard({ recommendation, matchingProfile }) {
 }
 
 function Recommendations() {
-  const { state } = useLocation()
-  const matchingProfile = state?.matchingProfile
+  const [profileState, setProfileState] = useState({
+    status: 'loading',
+    profile: null,
+    error: '',
+  })
+  const [retryCount, setRetryCount] = useState(0)
   const [showAllRecommendations, setShowAllRecommendations] = useState(false)
 
-  if (!isMatchingProfile(matchingProfile)) {
+  useEffect(() => {
+    let active = true
+
+    fetchMatchingProfile()
+      .then((profile) => {
+        if (active) {
+          setProfileState({ status: 'loaded', profile, error: '' })
+        }
+      })
+      .catch((error) => {
+        if (active) {
+          setProfileState({
+            status: 'error',
+            profile: null,
+            error:
+              error instanceof Error
+                ? error.message
+                : 'Your matching profile could not be loaded.',
+          })
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [retryCount])
+
+  if (profileState.status === 'loading') {
+    return (
+      <main className="recommendations-page recommendations-page--empty">
+        <section className="recommendations-empty" role="status">
+          <h1>Loading your saved profile</h1>
+          <p>Checking that your matching profile is ready for recommendations.</p>
+        </section>
+      </main>
+    )
+  }
+
+  if (profileState.status === 'error') {
+    return (
+      <main className="recommendations-page recommendations-page--empty">
+        <section className="recommendations-empty" role="alert">
+          <h1>Your matching profile could not be checked</h1>
+          <p>{profileState.error}</p>
+          <button
+            className="recommendations-empty__action"
+            type="button"
+            onClick={() => {
+              setProfileState({ status: 'loading', profile: null, error: '' })
+              setRetryCount((count) => count + 1)
+            }}
+          >
+            Try again
+          </button>
+        </section>
+      </main>
+    )
+  }
+
+  const matchingProfile = profileState.profile
+
+  if (!matchingProfile) {
     return (
       <main className="recommendations-page recommendations-page--empty">
         <section

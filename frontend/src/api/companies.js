@@ -1,6 +1,4 @@
-const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001/api'
-).replace(/\/+$/, '')
+import { API_BASE_URL } from './config.js'
 
 export async function fetchCompanyBySlug(slug, { signal } = {}) {
   const listResponse = await fetch(`${API_BASE_URL}/companies`, { signal })

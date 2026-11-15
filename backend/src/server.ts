@@ -3,6 +3,8 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
 import { createApp } from './app.ts'
 import { createCompanyRepository } from './repositories/companyRepository.ts'
+import { createMatchingProfileRepository } from './repositories/matchingProfileRepository.ts'
+import { DEVELOPMENT_STUDENT_ID } from './config/developmentStudent.ts'
 import { PrismaClient } from './generated/prisma/client.ts'
 
 const databaseUrl = process.env.DATABASE_URL
@@ -13,7 +15,10 @@ if (!databaseUrl) {
 
 const pool = new Pool({ connectionString: databaseUrl })
 const prisma = new PrismaClient({ adapter: new PrismaPg(pool) })
-const app = createApp(createCompanyRepository(prisma))
+const app = createApp(
+  createCompanyRepository(prisma),
+  createMatchingProfileRepository(prisma, DEVELOPMENT_STUDENT_ID),
+)
 
 const port = Number(process.env.PORT ?? 3001)
 
