@@ -1,34 +1,27 @@
-# Contributing
+# Contributing to CCI Career Navigator
 
-## Before you start
+> **Source review:** November 14–15, 2026, based on uploaded project archive (5). “Implemented” means code exists; live PostgreSQL, cloud access, browser behavior, and GitHub board status were not independently verified during this review. Earlier local checks were reported in conversation.
 
-1. Read the README and project scope.
-2. Choose an unassigned GitHub Issue with acceptance criteria.
-3. Link the relevant Figma frame and identify dependencies.
+## Branch and pull request workflow
+1. Pull latest `main`; create a feature branch named for your issue.
+2. Keep changes focused. Add/update tests and documentation.
+3. Run the relevant checks before committing.
+4. Inspect `git status`, `git diff --cached --name-only`, and `git diff --cached` to avoid credentials or unrelated changes.
+5. Commit with a descriptive message, push your branch, open a PR, and link the corresponding GitHub Issue.
+6. Ask a teammate to review and merge through the team's agreed process; update GitHub Projects status.
 
-## Branches
+## Checks
+Backend (`backend/`): `npm test`, `npm run typecheck`, `npm run db:validate`, `npm run db:test` (requires local DB).
+Frontend (`frontend/`): `npm run test:run`, `npm run lint`, `npm run build`.
 
-```bash
-git switch main
-git pull origin main
-git switch -c feature/short-description
-```
+## Database changes
+- Propose schema changes and review migration SQL before applying.
+- Never run destructive migrations, resets, truncation, or data-overwriting seeds against shared environments without explicit team approval.
+- Commit schema, migrations, and safe idempotent seed changes; never commit `backend/.env`.
+- Each teammate uses their own local `DATABASE_URL`; cloud credentials must be distributed securely, not in Git.
 
-Use `feature/`, `fix/`, `docs/`, or `chore/` prefixes. Do not push directly to `main` without team agreement.
+## Current architecture caution
+The matching profile uses a shared development-only student ID. Do not enter actual personal student data. Recommendations and company-directory pages still use fixtures; do not claim production matching or complete live-data integration.
 
-## Commits and pull requests
-
-Use descriptive commit messages (for example, `Add matching questionnaire form`). Push your branch, open a pull request into `main`, and fill out the pull request template. Reference the issue with `Closes #123` (replace with the real issue number). Request at least one teammate review. Include screenshots for visual changes and describe how you tested your work.
-
-## Code expectations
-
-- Keep React components reusable and accessible.
-- Match the relevant Figma frame, including responsive behavior.
-- Keep the optional basic student profile separate from matching inputs.
-- Do not present mock match percentages as calculated results.
-- Validate inputs and handle empty and error states.
-- Do not commit credentials, `.env` files, or real student data.
-
-## Definition of done
-
-Acceptance criteria are met, the feature has been tested, relevant documentation is updated, and a teammate has reviewed the pull request. A Figma mockup alone is not a completed implementation.
+## Sprint 2 collaboration evidence
+Every teammate should make a meaningful commit and document their issue, PR, review, testing, and database operation. Confirm live board statuses before reporting completion.

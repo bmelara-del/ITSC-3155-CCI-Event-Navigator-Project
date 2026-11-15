@@ -1,60 +1,57 @@
-# Architecture: Current Implementation and Sprint 2 Target
+# Architecture — Current Implementation
 
-## Implemented frontend
+> **Source review:** November 14–15, 2026, based on uploaded project archive (5). “Implemented” means code exists; live PostgreSQL, cloud access, browser behavior, and GitHub board status were not independently verified during this review. Earlier local checks were reported in conversation.
 
-The uploaded project uses React, Vite, React Router, JavaScript, and CSS. `frontend/src/App.jsx` defines `/`, `/companies`, `/companies/:companyId`, `/matching-profile`, `/recommendations`, and `/student-profile`. Shared components include `Navbar.jsx` and `CompanyCard.jsx`.
-
-Company and recommendation records are currently local JavaScript data in `frontend/src/data/`. The matching questionnaire passes `{ careerInterest, skills, coursework, experienceLevel }` to Recommendations through React Router **location state**; this is not a persistent profile or an API request. Recommendations use fixed illustrative percentages, not computed match scores. The separate basic student profile uses browser `localStorage`, not server persistence or authentication.
-
-## Sprint 2 backend scaffold
-
-`backend/` now contains a Prisma 7/PostgreSQL schema, generated-client configuration using Prisma's PostgreSQL driver adapter, an offline-generated initial migration, and a development seed script based on the frontend's illustrative company fixtures. The schema covers companies, roles, skills, coursework, career interests, experience levels, and their role associations.
-
-This is a data-model scaffold only. No PostgreSQL database has been connected, no migration has been applied, no backend API exists, and the React frontend continues to use its local fixture data. Matching preferences are not persisted, and there is no student/profile foreign key: the regular Student Profile remains separate from the Matching Profile. Seeded career requirements and role-to-interest/coursework associations are illustrative assumptions, not verified employer data.
+## Data flow
 
 ```text
-Browser: React + Vite (existing local fixtures)
-  |  future API integration
-  v
-Node.js API (planned; not implemented)
-  | Prisma 7 + PostgreSQL adapter (scaffolded)
-  v
-PostgreSQL (schema and offline migration prepared; not connected/applied)
-  companies, roles, matching catalogs, role requirements
+React + Vite
+  |-- Explore Companies / Company Details --> local company fixtures (NOT API yet)
+  |-- Recommendations --> GET /api/matching-profile + sampleRecommendations
+  |-- MatchingProfile --> GET/PUT /api/matching-profile
+  |-- MatchDetails --> GET /api/companies then GET /api/companies/:id
+  |-- StudentProfile --> browser localStorage (separate)
+           |
+       Express 5 API
+           |
+     Repository functions
+           |
+   Prisma 7 / @prisma/adapter-pg
+           |
+       PostgreSQL
 ```
 
-### Future API contracts (not implemented)
+## Backend
+- `backend/src/server.ts`: loads dotenv, constructs PostgreSQL pool and Prisma Client, starts Express on `PORT` (default 3001).
+- `backend/src/app.ts`: CORS, JSON middleware, `/api/health`, company routes, matching profile routes, generic 500 handling.
+- `backend/src/repositories/companyRepository.ts`: Prisma company queries and related roles/requirements.
+- `backend/src/repositories/matchingProfileRepository.ts`: save/read matching profile, normalized skills/coursework relationships.
+- `backend/src/routes/companyRoutes.ts`: GET list and GET UUID detail; unknown/malformed IDs return 404.
+- `backend/src/routes/matchingProfileRoutes.ts`: GET profile; PUT validated questionnaire payload; 400/404/error handling.
+- `backend/prisma/schema.prisma`: UUID-based companies, roles, skills, coursework, career interests, experience levels, matching profiles, join tables.
+- `backend/prisma/migrations/`: initial migration and `20261114010000_saved_matching_profiles`.
+- `backend/prisma/seed.ts`: illustrative development records.
 
-The routes below remain proposals, not implemented services.
-
-```text
-GET /api/companies
-GET /api/companies/:id
-POST /api/matches
-GET /api/roles/:id
-```
-
-| Method | Route | Purpose |
-| --- | --- | --- |
-| GET | `/api/companies` | Browse companies |
-| GET | `/api/companies/:id` | Company details |
-| POST | `/api/matches` | Calculate ranked role relevance and explanation inputs |
-| GET | `/api/roles/:id` | Optional role detail for match preparation |
-
-Example matching input:
+## Matching profile contract
+`PUT /api/matching-profile` accepts:
 
 ```json
-{"careerInterest":"Software Engineering","skills":["Java","SQL","Git"],"coursework":["Database Design"],"experienceLevel":"coursework-projects"}
+{"careerInterest":"Software Engineering","skills":["SQL","Git"],"coursework":["Database Design"],"experienceLevel":"Beginner / No internship"}
 ```
 
-These routes are not promises of the eventual API contract. The Prisma catalog labels intentionally match the current questionnaire's display values; API serialization and validation still need to be designed.
+GET/PUT responses include those fields plus `profileId`, `createdAt`, `updatedAt`. GET returns 404 if none exists. The frontend treats 404 as no profile; other failures display an error/retry state. A single fixed development student ID is configured in `backend/src/config/developmentStudent.ts`. **This is not authentication or multi-user isolation.**
 
-## Matching rules and privacy
+## Frontend routing
+`App.jsx` routes `/`, `/companies`, `/companies/:companyId`, `/matching-profile`, `/recommendations`, `/recommendations/:companySlug/details`, `/student-profile`. `SavedMatchingProfile.jsx` is a child view within `/matching-profile` rather than a standalone route.
 
-Scores indicate **relevance, not likelihood of being hired**. Agree on weights, normalization, tie-breaking, missing inputs, and unit tests in issue #6. Each explanation must be traceable to actual inputs and role requirements. Do not score work style, location, or culture without collecting those inputs.
+## Known gaps and design decisions
+- Recommendations use local sample fixtures; no algorithm, score calculation, or `/api/matches` route.
+- Match Details combines API company records with sample/prep UI; scores and skill alignment are not computed.
+- Explore Companies and Company Details still import local fixtures.
+- Work preferences are not collected or stored in the matching questionnaire.
+- Prep checklist completion is not stored in PostgreSQL.
+- Production authentication, per-student authorization, cloud database proof, and deployed environment are absent/unverified.
+- Coordinate score weights, normalization, explainability, selected role ID, and shared match API response with owners of matching and recommendations issues.
 
-Use environment variables for server secrets, input validation, and parameterized database queries. Never expose credentials in frontend code. Decide whether and how to persist personal data before adding server-side storage. Do not use real student records in demonstrations.
-
-## Open decisions
-
-Matching weights, seed data and source reliability, API response contracts, persistence/authentication, testing and deployment strategy, and who owns integration between #6/#7/#8/#10.
+## Security
+Keep `backend/.env` out of Git and shared ZIPs. Use `.env.example` placeholders. Do not expose database connection strings in Vite or browser code. Rotate credentials if any were committed or shared. Audit Git history, not only `.gitignore`.

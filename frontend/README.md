@@ -1,42 +1,37 @@
-# CCI Career Navigator — Frontend
+# Frontend — React + Vite
 
-React + Vite single-page application for the ITSC 3155 project. This folder is the **frontend only**; the Sprint 2 backend and database are planned, not confirmed implemented in the uploaded source.
+> **Source review:** November 14–15, 2026, based on uploaded project archive (5). “Implemented” means code exists; live PostgreSQL, cloud access, browser behavior, and GitHub board status were not independently verified during this review. Earlier local checks were reported in conversation.
 
-## Setup
-
-From this directory:
-
+## Setup and checks
 ```bash
 npm ci
 npm run dev
-```
-
-Open the local URL printed by Vite (often `http://localhost:5173`). Use `npm run build` for a production build and `npm run preview` to preview it.
-
-## Checks
-
-```bash
 npm run test:run
 npm run lint
 npm run build
 ```
 
-See [`TESTING.md`](TESTING.md) for historical verification evidence. This documentation update did not obtain a fresh passing test run.
+Start the backend separately; API base URL defaults to `http://localhost:3001/api` and may be overridden by `VITE_API_BASE_URL`.
 
-## Routes
+## Routes and data sources
+| Route | Page | Data source |
+|---|---|---|
+| `/` | Home | Static UI |
+| `/companies` | ExploreCompanies | `src/data/companies.js` local fixtures |
+| `/companies/:companyId` | CompanyDetails | Local fixtures |
+| `/matching-profile` | MatchingProfile / SavedMatchingProfile | GET/PUT `/api/matching-profile` |
+| `/recommendations` | Recommendations | Saved profile API + `sampleRecommendations` |
+| `/recommendations/:companySlug/details` | MatchDetails | Company API lookup, selected navigation data, demo prep content |
+| `/student-profile` | StudentProfile | Browser localStorage, separate from matching profile |
 
-| Route | Component | Notes |
-| --- | --- | --- |
-| `/` | `Home.jsx` | Homepage; click navbar brand to return |
-| `/companies` | `ExploreCompanies.jsx` | Local sample companies |
-| `/companies/:companyId` | `CompanyDetails.jsx` | Company detail route |
-| `/matching-profile` | `MatchingProfile.jsx` | Questionnaire |
-| `/recommendations` | `Recommendations.jsx` | Sample companies; requires router state |
-| `/recommendations/:companySlug/details` | `MatchDetails.jsx` | Selected recommendation or API company details |
-| `/student-profile` | `StudentProfile.jsx` | Separate profile in localStorage |
+## Saved matching profile
+On `/matching-profile`, frontend loads `GET /api/matching-profile`. A 404 opens questionnaire; existing record opens `SavedMatchingProfile.jsx` with timestamp and Edit action; errors show retry instead of falsely treating a profile as absent. Saving uses `PUT /api/matching-profile`. Recommendations independently loads the profile so direct navbar access works when the API returns a saved profile.
 
-Questionnaire inputs are passed using `navigate('/recommendations', { state: { matchingProfile } })`. They are not saved as a server account; reloading or directly opening the Recommendations route may lose the state and show the questionnaire prompt. The student profile's localStorage is independent.
+## Important limits
+- Recommendation cards are **sample recommendations**, not computed matches; score unavailable is shown.
+- Explore Companies and Company Details are **not** database-connected yet.
+- Match Details uses company API where possible; sample prep/checklist content does not imply computed explanations or persisted progress.
+- Work preferences are not collected; saved profile UI states this explicitly.
+- The backend uses one development-only student ID for all visitors; not a production login.
 
-Sample data is in `src/data/companies.js` and `src/data/recommendations.js`. Matching scores and explanations are unavailable; the app does not calculate them. See the root `ARCHITECTURE.md` and `SPRINT_2.md` for proposed integration work.
-
-The Match Details route keeps a stable company slug in the URL. It uses the selected recommendation passed by React Router when available. When opened directly or refreshed, it looks up the slug through `GET /api/companies` followed by `GET /api/companies/:id`, then uses local sample data for a demo company if the API has no matching record or is unavailable. Set `VITE_API_BASE_URL` to override the default API base URL (`http://localhost:3001/api`).
+See `TESTING.md` for how to record new evidence.

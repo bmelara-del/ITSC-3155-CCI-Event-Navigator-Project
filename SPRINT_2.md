@@ -1,40 +1,44 @@
-# Sprint 2 Plan and Status
+# Sprint 2 — Implementation Status and Remaining Work
 
-**Board snapshot:** November 13, 2026, supplied screenshot. This is a point-in-time view; it is not automatically synchronized with GitHub.
+> **Source review:** November 14–15, 2026, based on uploaded project archive (5). “Implemented” means code exists; live PostgreSQL, cloud access, browser behavior, and GitHub board status were not independently verified during this review. Earlier local checks were reported in conversation.
 
-## Board status
+## Current status summary
+**Issue #10 — Create Express API and PostgreSQL Database:** estimated **~85% of implementation effort**. This is not an official GitHub board percentage. API and database code are present; matching profile persistence API is implemented; matching score request/response contract and complete verification remain.
 
-| Issue | Title | Board column | Source-code observation |
-| --- | --- | --- | --- |
-| #1 | Project Setup | Sprint 1 Done | React/Vite frontend present |
-| #2 | Shared Navbar | Sprint 1 Done | `Navbar.jsx` and routes present |
-| #3 | Welcome Page | Sprint 1 Done | `Home.jsx` present |
-| #4 | Company Profiles | Sprint 1 Done | Company browsing and detail pages present |
-| #5 | Matching Questionnaire | Sprint 1 In progress | `MatchingProfile.jsx` present; passes location state |
-| #9 | Regular Student Profile | Todo | `StudentProfile.jsx` present; uses browser localStorage |
-| #10 | Backend and Database | Sprint 2 in progress | Prisma/PostgreSQL schema, client configuration, offline initial migration, and illustrative seed prepared under `backend/`; no database connection, migration application, or API implementation |
-| #8 | Match Details and Prep | Sprint 2 in progress | Existing company details are not yet personalized match explanations |
-| #6 | Matching Algorithm | Sprint 2 in progress | Recommendations still use illustrative static scores |
-| #7 | Recommendations | Sprint 2 in progress | Frontend recommendation page exists; algorithm integration remains |
+## Issue #10 acceptance criteria
+| Criterion | Source review |
+|---|---|
+| Express server starts locally | Implemented in `backend/src/server.ts`; rerun to verify |
+| PostgreSQL via environment variables | Implemented; earlier user-reported successful connection |
+| Companies, roles, requirements stored | Schema, migrations, and seed present; confirm actual rows |
+| List companies endpoint | GET `/api/companies` implemented |
+| Company details endpoint | GET `/api/companies/:id` implemented |
+| Agreed matching request/response contract | **Incomplete**: matching-profile GET/PUT is not a match-scoring endpoint |
+| Development sample data | Seed script present; run against approved dev DB |
+| API errors handled/documented | 400/404/500 paths and tests present; full coverage not established |
+| Secrets excluded from Git | Ignore rules must be checked against tracked files and history |
 
-## Suggested integration sequence
+## Assignment work: implemented vs evidence still required
+| Workstream | Code/artifact present | Still needed |
+|---|---|---|
+| Database/ORM | Prisma schema, two migrations, seed, test script | Validate applied migrations and seed on each machine |
+| Backend/API | Express, company GET routes, matching-profile GET/PUT | Confirm live requests, contract ownership, scoring API |
+| UML | `docs/uml/*.puml` and SVGs | Verify diagrams match current code; capture required evidence |
+| Database-integrated user story | Matching-profile read/create/update code | Demonstrate save → refresh/restart → retrieve → edit against PostgreSQL |
+| Frontend integration | Saved profile and Match Details API lookup | Company directory/detail still fixture-based; match recommendations still samples |
+| Team database | Setup guide | Shared cloud DB, teammate CRUD checks and screenshots |
+| Security | `.env.example` / ignore configuration | Git tracking/history audit, avoid sharing `.env` |
+| Tests | Backend route tests, frontend tests | Run fresh tests/lint/build/typecheck, record dated output |
+| Scrum / collaboration | Git files and project documentation | Verify issue statuses, PRs, meaningful commits per teammate, board evidence |
+| Release | No release established by source review | Create required Sprint 2 GitHub release and submit URLs |
 
-1. **#10 Data/API contract:** The initial catalog schema and illustrative seed are scaffolded under `backend/`. Review the model, approve a PostgreSQL target, then apply the initial migration and validate/sample the data. Agree on API IDs, response/error shapes, and whether matching runs on the server before wiring frontend calls. Role requirements and mappings in the seed are assumptions, not authoritative employer data.
-2. **#6 Matching logic:** Define deterministic relevance formula, normalization, missing-input handling, tie-breaking, and unit tests. Relevance is not hiring probability. Only use questionnaire inputs the app actually collects.
-3. **#7 Recommendations integration:** Connect submitted profile to matching results; show computed scores, loading/error/empty states, and stable role/company detail links. Remove illustrative score labels only once actual scores replace them.
-4. **#8 Match details/preparation:** Display a selected role's score explanation, matching skills, missing skills, suggested recruiter questions, and preparation checklist. Ensure the explanation matches the algorithm output.
-5. **#5 and #9 completion review:** Verify acceptance criteria and responsive behavior; reconcile board status with actual merged code. Keep the basic student profile separate from matching unless the team explicitly designs an integration.
+## Recommended next sequence
+1. Run `npm run db:migrate:deploy`, `npm run db:seed`, `npm run db:test` in approved local development DB; run backend tests and typecheck.
+2. Manually save matching profile, reload page, restart browser/backend, retrieve and edit; inspect PostgreSQL records.
+3. Wire Explore Companies and Company Details to existing company API.
+4. Agree with team whether scoring endpoint belongs to #10 or #6; implement and test the chosen contract.
+5. Complete shared cloud database and teammate operations; collect evidence.
+6. Refresh UML, document test results, reconcile GitHub Projects and issue checklist, merge reviewed PRs, tag and publish Sprint 2 release.
 
-## Suggested acceptance checks
-
-- [ ] Backend and database start from documented setup steps and return validated company/role data.
-- [ ] Matching logic produces reproducible scores for fixed inputs and handles empty/invalid fields.
-- [ ] Recommendations show calculated relevance scores rather than hardcoded demo percentages.
-- [ ] Recommendation details lead to role-specific, explainable match/prep content.
-- [ ] Navigation, mobile layouts, keyboard use, loading/error states, and tests are verified.
-- [ ] No secrets or real student records are committed; persistence and privacy decisions are documented.
-- [ ] Each completed issue has a reviewed PR, test evidence, and an updated GitHub Projects status.
-
-## Open team decisions
-
-Matching formula/weights; authoritative company and role data; API ownership and contracts; whether student/matching profiles persist; deployment strategy; issue ownership and Sprint 2 deadline. None of these are established by the screenshot alone.
+## Evidence checklist
+Record actual date, tester, branch/commit, test command and result, endpoint screenshots (without secrets), database operations, GitHub issue/PR links, and release link. Do not mark requirements complete from file presence alone.
