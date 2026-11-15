@@ -6,6 +6,9 @@ export const northwindAnalytics = {
     'A sample data and analytics employer helping organizations turn information into clear decisions. This is placeholder content for the prototype.',
   roles: ['Data Analyst Intern'],
   skills: ['SQL', 'Python', 'Data Visualization'],
+  location: 'Charlotte, NC',
+  workArrangement: 'Hybrid',
+  term: 'Spring 2027',
 }
 
 export const sampleCompanies = [

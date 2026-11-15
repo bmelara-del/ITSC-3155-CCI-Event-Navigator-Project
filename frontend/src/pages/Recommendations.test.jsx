@@ -1,16 +1,73 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
+import { afterEach, vi } from 'vitest'
 import { describe, expect, it } from 'vitest'
-import CompanyDetails from './CompanyDetails.jsx'
+import MatchDetails from './MatchDetails.jsx'
 import MatchingProfile from './MatchingProfile.jsx'
 import Recommendations from './Recommendations.jsx'
+import { sampleRecommendations } from '../data/recommendations.js'
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
 
 const matchingProfile = {
   careerInterest: 'Software Engineering',
   skills: ['Java', 'SQL', 'Git'],
   coursework: ['Data Structures', 'Database Design'],
   experienceLevel: 'Beginner / No internship',
+}
+
+function stubRecommendationApi() {
+  const companies = sampleRecommendations.map((recommendation, index) => ({
+    companyId: `test-company-${index}`,
+    slug: recommendation.id,
+    name: recommendation.name,
+    industry: recommendation.industry,
+    description: `${recommendation.name} description from PostgreSQL.`,
+    roles: recommendation.roles.map((title, roleIndex) => ({
+      roleId: `test-role-${index}-${roleIndex}`,
+      slug: `role-${roleIndex}`,
+      title,
+      description: `${title} role description from PostgreSQL.`,
+      location: recommendation.location,
+      employmentType: null,
+      workArrangement: recommendation.workArrangement,
+      term: recommendation.term,
+      isActive: true,
+      skills: recommendation.skills.map((name) => ({ name })),
+      coursework: [],
+      careerInterests: [],
+    })),
+  }))
+
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((url) => {
+      if (url.endsWith('/companies')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () =>
+            companies.map(({ companyId, slug, name }) => ({
+              companyId,
+              slug,
+              name,
+            })),
+        })
+      }
+
+      const company = companies.find((item) =>
+        url.endsWith(`/companies/${item.companyId}`),
+      )
+
+      return Promise.resolve({
+        ok: Boolean(company),
+        status: company ? 200 : 404,
+        json: async () => company,
+      })
+    }),
+  )
 }
 
 function renderRecommendations(state = { matchingProfile }) {
@@ -20,7 +77,10 @@ function renderRecommendations(state = { matchingProfile }) {
     >
       <Routes>
         <Route path="/recommendations" element={<Recommendations />} />
-        <Route path="/companies/:companyId" element={<CompanyDetails />} />
+        <Route
+          path="/recommendations/:companySlug/details"
+          element={<MatchDetails />}
+        />
         <Route path="/matching-profile" element={<h1>Matching Profile</h1>} />
       </Routes>
     </MemoryRouter>,
@@ -37,7 +97,7 @@ describe('Recommendations', () => {
     expect(screen.getByText(/Your profile:/)).toHaveTextContent(
       'Software Engineering | Java, SQL, Git | 2 courses | Beginner / No internship',
     )
-    expect(screen.getByText(/scores are illustrative and are not calculated/))
+    expect(screen.getByText(/Match scores and explanations are not available/))
       .toBeInTheDocument()
 
     const recommendations = within(
@@ -50,8 +110,8 @@ describe('Recommendations', () => {
     expect(recommendations.getByText('Roles: Data Analyst Intern'))
       .toBeInTheDocument()
     expect(
-      recommendations.getByLabelText('Illustrative demo score: 92%'),
-    ).toHaveTextContent('92% demo score')
+      recommendations.getAllByLabelText('Match score unavailable')[0],
+    ).toHaveTextContent('Score unavailable')
     expect(recommendations.getAllByRole('link', { name: /View Match Details/ }))
       .toHaveLength(6)
   })
@@ -92,23 +152,39 @@ describe('Recommendations', () => {
     ).toHaveAttribute('aria-expanded', 'true')
   })
 
-  it('opens the existing company details page for a recommendation', async () => {
+  it.each([
+    {
+      name: 'Northwind Analytics',
+      roleText: 'Data Analyst Intern · Charlotte, NC · Hybrid · Spring 2027',
+      href: '/recommendations/northwind-analytics/details',
+    },
+    {
+      name: 'Company A',
+      roleText: /Software Engineering · Location details coming soon/,
+      href: '/recommendations/company-a/details',
+    },
+  ])('opens the selected company details for $name', async ({
+    name,
+    roleText,
+    href,
+  }) => {
     const user = userEvent.setup()
+    stubRecommendationApi()
     renderRecommendations()
 
-    await user.click(
-      screen.getByRole('link', {
-        name: 'View Match Details for Northwind Analytics',
-      }),
-    )
+    const detailsLink = screen.getByRole('link', {
+      name: `View Match Details for ${name}`,
+    })
+    expect(detailsLink).toHaveAttribute('href', href)
+    await user.click(detailsLink)
 
     expect(
-      screen.getByRole('heading', { name: 'Northwind Analytics' }),
+      screen.getByRole('heading', { name: 'Match Details and Prep' }),
     ).toBeInTheDocument()
-    expect(screen.getByText('Data Analyst Intern')).toBeInTheDocument()
-    expect(
-      screen.getByRole('link', { name: 'Check my match' }),
-    ).toHaveAttribute('href', '/matching-profile')
+    expect(screen.getByRole('heading', { name })).toBeInTheDocument()
+    expect(screen.getByText(roleText)).toBeInTheDocument()
+    expect(screen.getByText(/Skills selected: Java, SQL, Git/))
+      .toBeInTheDocument()
   })
 
   it('renders recommendations after navigating from the questionnaire with selected values', async () => {

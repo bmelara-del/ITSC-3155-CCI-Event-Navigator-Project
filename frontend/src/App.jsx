@@ -5,6 +5,7 @@ import ExploreCompanies from './pages/ExploreCompanies.jsx'
 import CompanyDetails from './pages/CompanyDetails.jsx'
 import MatchingProfile from './pages/MatchingProfile.jsx'
 import Recommendations from './pages/Recommendations.jsx'
+import MatchDetails from './pages/MatchDetails.jsx'
 import StudentProfile from './pages/StudentProfile.jsx'
 import './App.css'
 
@@ -18,6 +19,10 @@ function App() {
         <Route path="/companies/:companyId" element={<CompanyDetails />} />
         <Route path="/matching-profile" element={<MatchingProfile />} />
         <Route path="/recommendations" element={<Recommendations />} />
+        <Route
+          path="/recommendations/:companySlug/details"
+          element={<MatchDetails />}
+        />
         <Route path="/student-profile" element={<StudentProfile />} />
       </Routes>
     </div>
