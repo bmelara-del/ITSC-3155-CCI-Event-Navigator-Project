@@ -72,6 +72,7 @@ model Skill {
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   roles RoleSkill[]
+  matchingProfiles MatchingProfileSkill[]
 
   @@map("skills")
 }
@@ -95,6 +96,7 @@ model Coursework {
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   roles RoleCoursework[]
+  matchingProfiles MatchingProfileCoursework[]
 
   @@map("coursework")
 }
@@ -118,6 +120,7 @@ model CareerInterest {
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   roles RoleCareerInterest[]
+  matchingProfiles MatchingProfile[]
 
   @@map("career_interests")
 }
@@ -142,6 +145,53 @@ model ExperienceLevel {
   createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   rolesAtLevel Role[] @relation("RoleMinimumExperience")
+  matchingProfiles MatchingProfile[]
 
   @@map("experience_levels")
+}
+
+model MatchingProfile {
+  profileId          String   @id @default(uuid()) @map("profile_id") @db.Uuid
+  studentId          String   @unique @map("student_id") @db.Uuid
+  careerInterestId   String   @map("career_interest_id") @db.Uuid
+  experienceLevelId  String   @map("experience_level_id") @db.Uuid
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  careerInterest  CareerInterest  @relation(fields: [careerInterestId], references: [careerInterestId], onDelete: Restrict, onUpdate: Cascade)
+  experienceLevel ExperienceLevel @relation(fields: [experienceLevelId], references: [experienceLevelId], onDelete: Restrict, onUpdate: Cascade)
+  skills          MatchingProfileSkill[]
+  coursework      MatchingProfileCoursework[]
+
+  @@index([careerInterestId])
+  @@index([experienceLevelId])
+  @@map("matching_profiles")
+}
+
+model MatchingProfileSkill {
+  profileId String @map("profile_id") @db.Uuid
+  skillId   String @map("skill_id") @db.Uuid
+  position  Int
+
+  profile MatchingProfile @relation(fields: [profileId], references: [profileId], onDelete: Cascade, onUpdate: Cascade)
+  skill   Skill           @relation(fields: [skillId], references: [skillId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@id([profileId, skillId])
+  @@unique([profileId, position])
+  @@index([skillId])
+  @@map("matching_profile_skills")
+}
+
+model MatchingProfileCoursework {
+  profileId   String @map("profile_id") @db.Uuid
+  courseworkId String @map("coursework_id") @db.Uuid
+  position    Int
+
+  profile   MatchingProfile @relation(fields: [profileId], references: [profileId], onDelete: Cascade, onUpdate: Cascade)
+  coursework Coursework     @relation(fields: [courseworkId], references: [courseworkId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@id([profileId, courseworkId])
+  @@unique([profileId, position])
+  @@index([courseworkId])
+  @@map("matching_profile_coursework")
 }

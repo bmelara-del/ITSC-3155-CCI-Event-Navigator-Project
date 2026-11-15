@@ -1,11 +1,15 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import ExploreCompanies from './ExploreCompanies.jsx'
 import Home from './Home.jsx'
 import MatchingProfile from './MatchingProfile.jsx'
 import StudentProfile from './StudentProfile.jsx'
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
 
 function renderHome() {
   return render(
@@ -34,6 +38,10 @@ describe('Home opportunity cards', () => {
 
   it('links Get Matched to the questionnaire, not recommendations', async () => {
     const user = userEvent.setup()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false, status: 404 })),
+    )
     renderHome()
 
     const getMatched = screen.getByRole('link', { name: 'Get Matched' })
@@ -41,7 +49,7 @@ describe('Home opportunity cards', () => {
     await user.click(getMatched)
 
     expect(
-      screen.getByRole('heading', { name: 'Create My Matching Profile' }),
+      await screen.findByRole('heading', { name: 'Create My Matching Profile' }),
     ).toBeInTheDocument()
     expect(
       screen.queryByRole('heading', { name: 'Recommended Companies' }),

@@ -407,10 +407,17 @@
   font-size: 14px;
 }
 
+.matching-profile__actions {
+  width: calc(100% - clamp(34px, 3.4vw, 49px));
+  margin-left: clamp(6px, 0.56vw, 8px);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
 .matching-profile__submit {
   width: calc(100% - clamp(34px, 3.4vw, 49px));
   min-height: 66px;
-  margin-left: clamp(6px, 0.56vw, 8px);
   padding: 10px 20px;
   border: 0;
   border-radius: 15px;
@@ -425,6 +432,39 @@
   font-weight: 700;
   cursor: pointer;
   transition: background-color 140ms ease;
+}
+
+.matching-profile__actions .matching-profile__submit {
+  width: 100%;
+  margin-left: 0;
+}
+
+.matching-profile__submit:disabled,
+.matching-profile__cancel:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.matching-profile__cancel {
+  min-width: 128px;
+  min-height: 52px;
+  padding: 10px 20px;
+  border: 1px solid #046a38;
+  border-radius: 12px;
+  background: #fff;
+  color: #046a38;
+  font: inherit;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.matching-profile__cancel:hover {
+  background: #f0faf4;
+}
+
+.matching-profile__cancel:focus-visible {
+  outline: 3px solid #9ed1b7;
+  outline-offset: 3px;
 }
 
 .matching-profile__submit:hover {
@@ -451,6 +491,38 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   clip-path: inset(50%);
+}
+
+.matching-profile__load-state {
+  width: min(800px, calc(100% - 64px));
+  margin: 0 auto;
+  padding: 64px 0;
+  color: #111;
+}
+
+.matching-profile__load-state h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 500;
+}
+
+.matching-profile__load-state p {
+  line-height: 1.5;
+}
+
+.matching-profile__load-state button {
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 10px;
+  background: #046a38;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.matching-profile__load-state button:focus-visible {
+  outline: 3px solid #9ed1b7;
+  outline-offset: 3px;
 }
 
 @media (max-width: 900px) {
@@ -593,6 +665,26 @@
     min-height: 58px;
     gap: 10px;
     font-size: 18px;
+  }
+
+  .matching-profile__actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .matching-profile__actions .matching-profile__submit {
+    min-width: 0;
+    padding: 10px;
+  }
+
+  .matching-profile__cancel {
+    min-width: 90px;
+    padding: 10px;
+  }
+
+  .matching-profile__load-state {
+    width: calc(100% - 36px);
+    padding-top: 40px;
   }
 }
 
