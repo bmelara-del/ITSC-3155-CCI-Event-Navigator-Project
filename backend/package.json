@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "test": "tsx --test src/routes/companyRoutes.test.ts src/routes/matchingProfileRoutes.test.ts src/matching/scoreMatch.test.ts",
+    "test": "tsx --test src/routes/companyRoutes.test.ts src/routes/matchingProfileRoutes.test.ts src/matching/scoreMatch.test.ts src/services/recommendationService.test.ts src/routes/recommendationRoutes.test.ts src/repositories/recommendationRepository.test.ts",
     "db:generate": "prisma generate",
     "db:format": "prisma format",
     "db:validate": "prisma validate",

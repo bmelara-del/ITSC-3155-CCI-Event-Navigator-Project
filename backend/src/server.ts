@@ -4,6 +4,8 @@ import { Pool } from 'pg'
 import { createApp } from './app.ts'
 import { createCompanyRepository } from './repositories/companyRepository.ts'
 import { createMatchingProfileRepository } from './repositories/matchingProfileRepository.ts'
+import { createRecommendationRepository } from './repositories/recommendationRepository.ts'
+import { createRecommendationService } from './services/recommendationService.ts'
 import { DEVELOPMENT_STUDENT_ID } from './config/developmentStudent.ts'
 import { PrismaClient } from './generated/prisma/client.ts'
 
@@ -15,9 +17,20 @@ if (!databaseUrl) {
 
 const pool = new Pool({ connectionString: databaseUrl })
 const prisma = new PrismaClient({ adapter: new PrismaPg(pool) })
+const companyRepository = createCompanyRepository(prisma)
+const matchingProfileRepository = createMatchingProfileRepository(
+  prisma,
+  DEVELOPMENT_STUDENT_ID,
+)
+const recommendationRepository = createRecommendationRepository(prisma)
+const recommendationService = createRecommendationService(
+  matchingProfileRepository,
+  recommendationRepository,
+)
 const app = createApp(
-  createCompanyRepository(prisma),
-  createMatchingProfileRepository(prisma, DEVELOPMENT_STUDENT_ID),
+  companyRepository,
+  matchingProfileRepository,
+  recommendationService,
 )
 
 const port = Number(process.env.PORT ?? 3001)
