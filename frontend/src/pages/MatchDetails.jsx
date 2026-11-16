@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router'
 import scoreRing from '../assets/figma/match-score-ring.svg'
 import scoreRingInner from '../assets/figma/match-score-ring-inner.svg'
 import comparisonRowDivider from '../assets/figma/match-comparison-row-divider.svg'
@@ -24,6 +24,27 @@ const DEFAULT_QUESTIONS = [
   'Describe a time you worked with others to solve a challenge.',
   'What do you hope to learn in this role?',
 ]
+
+function getSavedCompletedTasks(recommendationId) {
+  try {
+    const savedTasks = localStorage.getItem(`match-prep-${recommendationId}`)
+    if (savedTasks) {
+      const parsedTasks = JSON.parse(savedTasks)
+
+      if (
+        Array.isArray(parsedTasks) &&
+        parsedTasks.length === INITIAL_COMPLETED_TASKS.length &&
+        parsedTasks.every((task) => typeof task === 'boolean')
+      ) {
+        return parsedTasks
+      }
+    }
+  } catch {
+    // Continue using the default checklist if saved data is unavailable.
+  }
+
+  return INITIAL_COMPLETED_TASKS
+}
 
 function isRecommendation(value) {
   return (
@@ -54,7 +75,7 @@ function getRecordNames(records, property) {
     : []
 }
 
-function getApiRecommendation(company, preferredRoleName) {
+function getApiRecommendation(company, preferredRoleName, preferredRoleId) {
   if (
     !company ||
     typeof company.companyId !== 'string' ||
@@ -67,11 +88,18 @@ function getApiRecommendation(company, preferredRoleName) {
   const roles = Array.isArray(company.roles)
     ? company.roles.filter((role) => role && typeof role === 'object')
     : []
+  const roleById = preferredRoleId
+    ? roles.find((role) => role.roleId === preferredRoleId)
+    : null
+
+  if (preferredRoleId && !roleById) {
+    throw new Error('The selected role was not found for this company.')
+  }
+
   const primaryRole =
-    roles.find(
-      (role) =>
-        role.title === preferredRoleName || role.slug === preferredRoleName,
-    ) ||
+    roleById ||
+    roles.find((role) => role.title === preferredRoleName) ||
+    roles.find((role) => role.slug === preferredRoleName) ||
     roles.find((role) => role.isActive) ||
     roles[0] ||
     {}
@@ -130,6 +158,8 @@ function MatchDetails({
 } = {}) {
   const { companySlug } = useParams()
   const { state } = useLocation()
+  const [searchParams] = useSearchParams()
+  const requestedRoleId = searchParams.get('roleId')
   const routeRecommendation = isRecommendation(state?.recommendation)
     ? state.recommendation
     : null
@@ -144,6 +174,8 @@ function MatchDetails({
       ? routeRecommendation
       : null
   const selectedRecommendation = providedMatch || routeMatch
+  const preferredRoleId =
+    selectedRecommendation?.roleId || requestedRoleId
   const preferredRoleName =
     selectedRecommendation?.roleTitle ||
     selectedRecommendation?.role?.title ||
@@ -170,33 +202,6 @@ function MatchDetails({
       ? taskState.completedTasks
       : INITIAL_COMPLETED_TASKS
 
-        useEffect(() => {
-    if (!recommendation?.id) return
-
-    try {
-      const savedTasks = localStorage.getItem(
-        `match-prep-${recommendation.id}`,
-      )
-
-      if (savedTasks) {
-        const parsedTasks = JSON.parse(savedTasks)
-
-        if (
-          Array.isArray(parsedTasks) &&
-          parsedTasks.length === INITIAL_COMPLETED_TASKS.length &&
-          parsedTasks.every((task) => typeof task === 'boolean')
-        ) {
-          setTaskState({
-            recommendationId: recommendation.id,
-            completedTasks: parsedTasks,
-          })
-        }
-      }
-    } catch {
-      // Continue using the default checklist if saved data is unavailable.
-    }
-  }, [recommendation?.id])
-
   useEffect(() => {
     if (taskState.recommendationId !== recommendation?.id) return
 
@@ -216,12 +221,25 @@ function MatchDetails({
     fetchCompanyBySlug(companySlug)
       .then((company) => {
         if (active) {
+          const nextRecommendation = company
+            ? getApiRecommendation(
+                company,
+                preferredRoleName,
+                preferredRoleId,
+              )
+            : null
+
+          if (nextRecommendation) {
+            setTaskState({
+              recommendationId: nextRecommendation.id,
+              completedTasks: getSavedCompletedTasks(nextRecommendation.id),
+            })
+          }
+
           setApiState({
             slug: companySlug,
             status: company ? 'loaded' : 'not-found',
-            recommendation: company
-              ? getApiRecommendation(company, preferredRoleName)
-              : null,
+            recommendation: nextRecommendation,
           })
         }
       })
@@ -234,7 +252,7 @@ function MatchDetails({
     return () => {
       active = false
     }
-  }, [companySlug, preferredRoleName, retryCount])
+  }, [companySlug, preferredRoleId, preferredRoleName, retryCount])
 
   if (!recommendation) {
     const isLoading = loadStatus === 'loading'

@@ -1,11 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes } from 'react-router'
+import { MemoryRouter, Route, Routes, useNavigate } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import MatchDetails from './MatchDetails.jsx'
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  localStorage.clear()
 })
 
 const recommendation = {
@@ -89,9 +90,11 @@ function renderMatchDetails({
   selectedRecommendation = recommendation,
   profile = matchingProfile,
   includeState = true,
+  roleId,
 } = {}) {
   const entry = {
     pathname: `/recommendations/${id}/details`,
+    ...(roleId ? { search: `?roleId=${encodeURIComponent(roleId)}` } : {}),
     ...(includeState
       ? { state: { recommendation: selectedRecommendation, matchingProfile: profile } }
       : {}),
@@ -106,6 +109,30 @@ function renderMatchDetails({
         />
       </Routes>
     </MemoryRouter>,
+  )
+}
+
+function CompanySwitcher() {
+  const navigate = useNavigate()
+
+  return (
+    <button
+      type="button"
+      onClick={() =>
+        navigate('/recommendations/company-c/details', {
+          state: {
+            recommendation: {
+              id: 'company-c',
+              name: 'Company C',
+              roles: ['Cloud Engineer'],
+            },
+            matchingProfile,
+          },
+        })
+      }
+    >
+      Open Company C
+    </button>
   )
 }
 
@@ -176,6 +203,115 @@ describe('MatchDetails', () => {
     expect(
       screen.getByRole('progressbar', { name: 'Prep plan progress' }),
     ).toHaveAttribute('aria-valuenow', '3')
+    expect(localStorage.getItem('match-prep-company-b-uuid')).toBe(
+      JSON.stringify([true, true, true, false]),
+    )
+  })
+
+  it('restores saved task progress for the selected recommendation when switching companies', async () => {
+    const user = userEvent.setup()
+    const companyB = companyRecord()
+    const companyC = companyRecord({
+      companyId: 'company-c-uuid',
+      slug: 'company-c',
+      name: 'Company C',
+      roles: [
+        {
+          roleId: 'role-c-uuid',
+          slug: 'cloud-engineer',
+          title: 'Cloud Engineer',
+          description: 'Build cloud infrastructure.',
+          location: 'Raleigh, NC',
+          employmentType: 'INTERNSHIP',
+          workArrangement: 'REMOTE',
+          term: 'Summer 2027',
+          minimumExperienceLevel: { label: 'Beginner / No internship' },
+          isActive: true,
+          skills: [{ name: 'AWS' }],
+          coursework: [],
+          careerInterests: [],
+        },
+      ],
+    })
+    const companies = [companyB, companyC]
+    localStorage.setItem(
+      'match-prep-company-b-uuid',
+      JSON.stringify([false, true, false, false]),
+    )
+    localStorage.setItem(
+      'match-prep-company-c-uuid',
+      JSON.stringify([true, false, true, true]),
+    )
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url) => {
+        if (url.endsWith('/companies')) {
+          return {
+            ok: true,
+            json: async () =>
+              companies.map(({ companyId, slug, name }) => ({
+                companyId,
+                slug,
+                name,
+              })),
+          }
+        }
+
+        const company = companies.find((item) =>
+          url.endsWith(`/companies/${item.companyId}`),
+        )
+        return {
+          ok: Boolean(company),
+          status: company ? 200 : 404,
+          json: async () => company,
+        }
+      }),
+    )
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: '/recommendations/company-b/details',
+            state: { recommendation, matchingProfile },
+          },
+        ]}
+      >
+        <CompanySwitcher />
+        <Routes>
+          <Route
+            path="/recommendations/:companySlug/details"
+            element={<MatchDetails />}
+          />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText('1 of 4 steps complete')).toBeInTheDocument()
+    expect(
+      screen.getByRole('checkbox', { name: 'Review your match summary' }),
+    ).not.toBeChecked()
+    expect(
+      screen.getByRole('checkbox', { name: 'Research Company B' }),
+    ).toBeChecked()
+
+    await user.click(screen.getByRole('button', { name: 'Open Company C' }))
+
+    expect(await screen.findByText('3 of 4 steps complete')).toBeInTheDocument()
+    expect(
+      screen.getByRole('checkbox', { name: 'Review your match summary' }),
+    ).toBeChecked()
+    expect(
+      screen.getByRole('checkbox', { name: 'Research Company C' }),
+    ).not.toBeChecked()
+    expect(
+      screen.getByRole('checkbox', { name: 'Tailor your resume for this role' }),
+    ).toBeChecked()
+    expect(
+      screen.getByRole('checkbox', {
+        name: 'Practice your top interview questions',
+      }),
+    ).toBeChecked()
   })
 
   it('loads the selected company directly from PostgreSQL data', async () => {
@@ -243,6 +379,43 @@ describe('MatchDetails', () => {
       'http://localhost:3001/api/companies/company-b-uuid',
       { signal: undefined },
     )
+  })
+
+  it('restores the selected role from the URL after a direct page load', async () => {
+    const company = companyRecord({
+      roles: [
+        ...companyRecord().roles,
+        {
+          roleId: 'role-b-cloud',
+          slug: 'cloud-engineer',
+          title: 'Cloud Engineer',
+          description: 'Build cloud infrastructure.',
+          location: 'Raleigh, NC',
+          employmentType: 'INTERNSHIP',
+          workArrangement: 'REMOTE',
+          term: 'Summer 2027',
+          minimumExperienceLevel: { label: 'Some project or work experience' },
+          isActive: true,
+          skills: [{ name: 'AWS' }],
+          coursework: [],
+          careerInterests: [],
+        },
+      ],
+    })
+    mockCompanyApi(company)
+
+    renderMatchDetails({
+      id: 'company-b',
+      includeState: false,
+      roleId: 'role-b-cloud',
+    })
+
+    expect(
+      await screen.findByText(
+        'Cloud Engineer · Raleigh, NC · Internship · Remote · Summer 2027 · Some project or work experience',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Build cloud infrastructure.')).toBeInTheDocument()
   })
 
   it('shows a useful not-found state for an invalid company slug', async () => {
