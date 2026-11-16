@@ -4,6 +4,8 @@ import { createCompanyRouter } from './routes/companyRoutes.ts'
 import type { CompanyRepository } from './repositories/companyRepository.ts'
 import { createMatchingProfileRouter } from './routes/matchingProfileRoutes.ts'
 import type { MatchingProfileRepository } from './repositories/matchingProfileRepository.ts'
+import { createRecommendationRouter } from './routes/recommendationRoutes.ts'
+import type { RecommendationService } from './services/recommendationService.ts'
 
 const allowedOrigins = new Set([
   'http://localhost:5173',
@@ -13,6 +15,7 @@ const allowedOrigins = new Set([
 export function createApp(
   companyRepository: CompanyRepository,
   matchingProfileRepository?: MatchingProfileRepository,
+  recommendationService?: RecommendationService,
 ) {
   const app = express()
 
@@ -34,6 +37,12 @@ export function createApp(
     app.use(
       '/api/matching-profile',
       createMatchingProfileRouter(matchingProfileRepository),
+    )
+  }
+  if (recommendationService) {
+    app.use(
+      '/api/recommendations',
+      createRecommendationRouter(recommendationService),
     )
   }
 
