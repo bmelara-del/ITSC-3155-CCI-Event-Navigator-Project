@@ -16,7 +16,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/companies" element={<ExploreCompanies />} />
-        <Route path="/companies/:companyId" element={<CompanyDetails />} />
+        <Route path="/companies/:companySlug" element={<CompanyDetails />} />
         <Route path="/matching-profile" element={<MatchingProfile />} />
         <Route path="/recommendations" element={<Recommendations />} />
         <Route
