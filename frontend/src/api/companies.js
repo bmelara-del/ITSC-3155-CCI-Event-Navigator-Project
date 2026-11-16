@@ -1,5 +1,21 @@
 import { API_BASE_URL } from './config.js'
 
+export async function fetchCompanies({ signal } = {}) {
+  const response = await fetch(`${API_BASE_URL}/companies`, { signal })
+
+  if (!response.ok) {
+    throw new Error('The company list could not be loaded.')
+  }
+
+  const companies = await response.json()
+
+  if (!Array.isArray(companies)) {
+    throw new Error('The company list response was invalid.')
+  }
+
+  return companies
+}
+
 export async function fetchCompanyBySlug(slug, { signal } = {}) {
   const listResponse = await fetch(`${API_BASE_URL}/companies`, { signal })
 

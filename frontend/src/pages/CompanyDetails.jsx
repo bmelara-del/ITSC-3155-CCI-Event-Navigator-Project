@@ -1,14 +1,63 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { fetchCompanyBySlug } from '../api/companies.js'
 import matchCallout from '../assets/figma/company-match-callout.svg'
 import skillChip from '../assets/figma/company-skill-chip.svg'
-import { northwindAnalytics, sampleCompanies } from '../data/companies.js'
 import './CompanyDetails.css'
 
-function CompanyDetails() {
-  const { companyId } = useParams()
-  const company = [northwindAnalytics, ...sampleCompanies].find(
-    ({ id }) => id === companyId,
+function getRoleTitles(company) {
+  return (company.roles ?? []).map((role) => role.title).filter(Boolean)
+}
+
+function getSkillNames(company) {
+  const names = (company.roles ?? []).flatMap((role) =>
+    (role.skills ?? []).map((skill) => skill.name),
   )
+
+  return [...new Set(names.filter(Boolean))]
+}
+
+function CompanyDetails() {
+  const { companySlug } = useParams()
+  const [loaded, setLoaded] = useState({ slug: null, company: null, error: false })
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    fetchCompanyBySlug(companySlug, { signal: controller.signal })
+      .then((company) => setLoaded({ slug: companySlug, company, error: false }))
+      .catch((error) => {
+        if (error.name !== 'AbortError') {
+          setLoaded({ slug: companySlug, company: null, error: true })
+        }
+      })
+
+    return () => controller.abort()
+  }, [companySlug])
+
+  if (loaded.slug !== companySlug) {
+    return (
+      <main className="company-details">
+        <p role="status">Loading company…</p>
+      </main>
+    )
+  }
+
+  if (loaded.error) {
+    return (
+      <main className="company-details">
+        <section className="company-details__not-found" role="alert">
+          <h1>Company could not be loaded</h1>
+          <p>Something went wrong while loading this company. Please try again.</p>
+        </section>
+        <Link className="company-details__back" to="/companies">
+          Back to Explore Companies
+        </Link>
+      </main>
+    )
+  }
+
+  const { company } = loaded
 
   if (!company) {
     return (
@@ -24,6 +73,9 @@ function CompanyDetails() {
     )
   }
 
+  const roleTitles = getRoleTitles(company)
+  const skillNames = getSkillNames(company)
+
   return (
     <main className="company-details">
       <h1>{company.name}</h1>
@@ -33,24 +85,24 @@ function CompanyDetails() {
         <p>{company.description}</p>
       </section>
 
-      {company.roles.length > 0 && (
+      {roleTitles.length > 0 && (
         <section
           className="company-details__section company-details__roles"
           aria-labelledby="company-roles"
         >
           <h2 id="company-roles">Relevant Technical Roles</h2>
-          <p>{company.roles.join(' | ')}</p>
+          <p>{roleTitles.join(' | ')}</p>
         </section>
       )}
 
-      {company.skills.length > 0 && (
+      {skillNames.length > 0 && (
         <section
           className="company-details__section company-details__skills"
           aria-labelledby="company-skills"
         >
           <h2 id="company-skills">Relevant Skills</h2>
           <ul className="company-details__skill-list">
-            {company.skills.map((skill) => (
+            {skillNames.map((skill) => (
               <li className="company-details__skill" key={skill}>
                 <img src={skillChip} alt="" />
                 <span>{skill}</span>

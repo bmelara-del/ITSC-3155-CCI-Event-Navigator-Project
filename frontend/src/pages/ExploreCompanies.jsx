@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { fetchCompanies } from '../api/companies.js'
 import CompanyCard from '../components/CompanyCard.jsx'
-import { sampleCompanies } from '../data/companies.js'
 import './ExploreCompanies.css'
 
 const INITIAL_COMPANY_COUNT = 6
@@ -8,20 +8,46 @@ const INITIAL_COMPANY_COUNT = 6
 function ExploreCompanies() {
   const [query, setQuery] = useState('')
   const [showAllCompanies, setShowAllCompanies] = useState(false)
+  const [companies, setCompanies] = useState([])
+  const [status, setStatus] = useState('loading')
+  const [reloadCount, setReloadCount] = useState(0)
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    fetchCompanies({ signal: controller.signal })
+      .then((loadedCompanies) => {
+        setCompanies(loadedCompanies)
+        setStatus('ready')
+      })
+      .catch((error) => {
+        if (error.name !== 'AbortError') {
+          setStatus('error')
+        }
+      })
+
+    return () => controller.abort()
+  }, [reloadCount])
+
+  function retryLoading() {
+    setStatus('loading')
+    setReloadCount((count) => count + 1)
+  }
 
   const filteredCompanies = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
 
-    return sampleCompanies.filter((company) =>
+    return companies.filter((company) =>
       company.name.toLowerCase().includes(normalizedQuery),
     )
-  }, [query])
+  }, [companies, query])
 
   const visibleCompanies =
     query.trim() || showAllCompanies
       ? filteredCompanies
       : filteredCompanies.slice(0, INITIAL_COMPANY_COUNT)
   const canShowMore =
+    status === 'ready' &&
     !query.trim() &&
     !showAllCompanies &&
     filteredCompanies.length > INITIAL_COMPANY_COUNT
@@ -42,13 +68,30 @@ function ExploreCompanies() {
         </label>
       </div>
 
-      {visibleCompanies.length > 0 ? (
+      {status === 'loading' && (
+        <p className="companies-page__empty" role="status">
+          Loading companies…
+        </p>
+      )}
+
+      {status === 'error' && (
+        <div className="companies-page__empty" role="alert">
+          <p>Companies could not be loaded.</p>
+          <button type="button" onClick={retryLoading}>
+            Try again
+          </button>
+        </div>
+      )}
+
+      {status === 'ready' && visibleCompanies.length > 0 && (
         <section className="company-grid" aria-label="Companies">
           {visibleCompanies.map((company) => (
-            <CompanyCard key={company.id} company={company} />
+            <CompanyCard key={company.companyId} company={company} />
           ))}
         </section>
-      ) : (
+      )}
+
+      {status === 'ready' && visibleCompanies.length === 0 && (
         <p className="companies-page__empty" role="status">
           No companies found. Try another name.
         </p>
