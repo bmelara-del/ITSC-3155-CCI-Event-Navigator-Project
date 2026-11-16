@@ -170,6 +170,46 @@ function MatchDetails({
       ? taskState.completedTasks
       : INITIAL_COMPLETED_TASKS
 
+        useEffect(() => {
+    if (!recommendation?.id) return
+
+    try {
+      const savedTasks = localStorage.getItem(
+        `match-prep-${recommendation.id}`,
+      )
+
+      if (savedTasks) {
+        const parsedTasks = JSON.parse(savedTasks)
+
+        if (
+          Array.isArray(parsedTasks) &&
+          parsedTasks.length === INITIAL_COMPLETED_TASKS.length &&
+          parsedTasks.every((task) => typeof task === 'boolean')
+        ) {
+          setTaskState({
+            recommendationId: recommendation.id,
+            completedTasks: parsedTasks,
+          })
+        }
+      }
+    } catch {
+      // Continue using the default checklist if saved data is unavailable.
+    }
+  }, [recommendation?.id])
+
+  useEffect(() => {
+    if (taskState.recommendationId !== recommendation?.id) return
+
+    try {
+      localStorage.setItem(
+        `match-prep-${recommendation.id}`,
+        JSON.stringify(taskState.completedTasks),
+      )
+    } catch {
+      // Checklist progress will remain available for the current session.
+    }
+  }, [recommendation?.id, taskState])
+
   useEffect(() => {
     let active = true
 
